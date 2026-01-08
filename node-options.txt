@@ -1,0 +1,1 @@
+pnpm --node-options="--permission --allow-fs-read=* --allow-fs-write=* --allow-net=* --allow-child-process --allow-worker --allow-addons --allow-wasi"
