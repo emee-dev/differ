@@ -2,9 +2,13 @@
 name = "prototype"
 version = "0.1.0"
 edition = "2021"
+default-run = "prototype"
 
 
 [dependencies]
+convex.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
@@ -13,3 +17,7 @@ sqlx.workspace = true
 futures.workspace = true
 uuid.workspace = true
 diff.workspace = true
+dotenvy.workspace = true
+maplit.workspace = true
+
+ 

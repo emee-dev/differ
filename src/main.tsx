@@ -1,22 +1,24 @@
-import React from "react";
+import { ThemeProvider } from "@/components/theme-provider";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
-import { SingleDiff } from "./diff";
-import { createBrowserRouter, RouterProvider } from "react-router";
+import "unfonts.css";
 import "./global.css";
+import { routeTree } from "./routeTree.gen";
 
-const loadRootData = () => <>isLoading...</>;
+// Create a new router instance
+const router = createRouter({ routeTree });
 
-const router = createBrowserRouter([
-	{
-		path: "/",
-		// Component: App,
-		Component: SingleDiff,
-		loader: loadRootData,
-	},
-]);
+// Register the router instance for type safety
+declare module "@tanstack/react-router" {
+	interface Register {
+		router: typeof router;
+	}
+}
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-	<React.StrictMode>
-		<RouterProvider router={router} />,
-	</React.StrictMode>,
+	// <StrictMode>
+	<ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+		<RouterProvider router={router} />
+	</ThemeProvider>,
+	// </StrictMode>,
 );

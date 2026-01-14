@@ -21,9 +21,13 @@
 		"noFallthroughCasesInSwitch": true,
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["./*"]
+			"@/*": ["./*"],
+			"@/components/*": ["./components/*"],
+			"@/lib/*": ["./lib/*"],
+			"@/hooks/*": ["./hooks/*"],
+			"@/convex/*": ["./convex/*"],
 		}
 	},
-	"include": ["src"],
+	"include": ["src", "components", "lib"],
 	"references": [{ "path": "./tsconfig.node.json" }]
 }
