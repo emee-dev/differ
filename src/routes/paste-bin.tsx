@@ -1,8 +1,9 @@
+import { EditorPanel } from "@/components/editor-panel";
 import { FileUploader, PasteHistory } from "@/components/file-uploader";
+import AppNavbar from "@/components/nav-bar";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { EditorPanel } from "./multi-file-diff";
 
 export const Route = createFileRoute("/paste-bin")({
 	component: RouteComponent,
@@ -100,7 +101,8 @@ function RouteComponent() {
 	// }, [data, errorMessage, convexError]);
 
 	return (
-		<div className="h-dvh">
+		<>
+			<AppNavbar />
 			<div className="grid grid-cols-3 p-2.5 gap-x-2.5 space-y-2.5">
 				<EditorPanel
 					className="col-span-2"
@@ -140,6 +142,6 @@ function RouteComponent() {
 					uploadActions={uploadActions}
 				/>
 			</div>
-		</div>
+		</>
 	);
 }

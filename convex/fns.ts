@@ -17,14 +17,14 @@ export const getAppId = query({
 	},
 });
 
-export const getPasteBins = query({
+export const get_recent_pastes = query({
 	args: {
-		// appId: v.string(),
+		app_id: v.optional(v.string()),
 	},
 	handler: async (ctx, args) => {
 		return await ctx.db
 			.query("pastebins")
-			// .filter((q) => q.eq(q.field("accountId"), args.appId))
+			.filter((q) => q.eq(q.field("appId"), args.app_id))
 			.order("desc")
 			.take(15);
 	},

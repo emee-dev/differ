@@ -1,13 +1,4 @@
-import {
-	Calculator,
-	Calendar,
-	CreditCard,
-	Settings,
-	Smile,
-	User,
-} from "lucide-react";
-import * as React from "react";
-
+import { SettingsDialog } from "@/components/settings-dialog";
 import {
 	Command,
 	CommandDialog,
@@ -20,8 +11,9 @@ import {
 	CommandShortcut,
 } from "@/components/ui/command";
 import { useNavigate } from "@tanstack/react-router";
-
+import { Calculator, CreditCard, Settings, User } from "lucide-react";
 import type { ComponentType } from "react";
+import * as React from "react";
 
 export type CommandDefinition = {
 	id: string;
@@ -36,8 +28,9 @@ export type CommandDefinition = {
 	}) => void;
 };
 
-export function CommandMenu() {
+export function CmdMenu() {
 	const [open, setOpen] = React.useState(false);
+	const [showSettings, setShowSettings] = React.useState(false);
 	const navigate = useNavigate();
 
 	React.useEffect(() => {
@@ -62,24 +55,6 @@ export function CommandMenu() {
 
 	const COMMANDS: CommandDefinition[] = [
 		{
-			id: "diff-clipboard",
-			label: "Diff clipboard",
-			group: "suggestions",
-			icon: Calendar,
-			run: () => {
-				console.log("Diff clipboard");
-			},
-		},
-		{
-			id: "save-diff",
-			label: "Save diff",
-			group: "suggestions",
-			icon: Smile,
-			run: () => {
-				console.log("Save diff");
-			},
-		},
-		{
 			id: "paste-bin-sync",
 			label: "Sync device",
 			group: "suggestions",
@@ -89,7 +64,7 @@ export function CommandMenu() {
 		},
 		{
 			id: "multi-file-diff",
-			label: "Multi-file Diff",
+			label: "Diff checker",
 			group: "commands",
 			icon: User,
 			shortcut: "⌘P",
@@ -100,7 +75,7 @@ export function CommandMenu() {
 		},
 		{
 			id: "paste-bin",
-			label: "Paste bin",
+			label: "Paste Bin",
 			group: "commands",
 			icon: CreditCard,
 			shortcut: "⌘B",
@@ -110,13 +85,25 @@ export function CommandMenu() {
 			},
 		},
 		{
+			id: "chats",
+			label: "AI Chat",
+			group: "commands",
+			icon: Settings,
+			shortcut: "⌘S",
+			run: ({ close }) => {
+				navigate({ to: "/chats" });
+				close();
+			},
+		},
+		{
 			id: "settings",
 			label: "Settings",
 			group: "commands",
 			icon: Settings,
 			shortcut: "⌘S",
-			run: () => {
-				console.log("Settings");
+			run: ({ close }) => {
+				setShowSettings(true);
+				close();
 			},
 		},
 	];
@@ -227,6 +214,11 @@ export function CommandMenu() {
 					</CommandList>
 				</Command>
 			</CommandDialog>
+
+			<SettingsDialog
+				open={showSettings}
+				onOpenChange={setShowSettings}
+			/>
 		</>
 	);
 }

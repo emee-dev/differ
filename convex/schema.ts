@@ -4,10 +4,10 @@ import { v } from "convex/values";
 const schema = defineSchema({
 	pastebins: defineTable({
 		accountId: v.id("accounts"),
-		id: v.string(),
+		appId: v.string(),
 		body: v.string(),
 		date: v.string(),
-	}).index("find_by_id", ["id"]),
+	}),
 	attachments: defineTable({
 		pasteId: v.id<"pastebins">("pastebins"),
 		originalFileName: v.string(),
@@ -16,12 +16,11 @@ const schema = defineSchema({
 	accounts: defineTable({
 		appId: v.string(),
 		password: v.string(),
-		devices: v.array(
-			v.object({
-				label: v.string(),
-				fingerprint: v.string(),
-			}),
-		),
+	}),
+	devices: defineTable({
+		accountId: v.id("accounts"),
+		label: v.string(),
+		browserId: v.string(),
 	}),
 });
 

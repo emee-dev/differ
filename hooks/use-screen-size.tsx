@@ -39,4 +39,6 @@ export const useScreenSize = () => {
 
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
+
+	return screenSize;
 };

@@ -36,7 +36,7 @@ export type PasteHistory = {
 	date: string;
 };
 
-const getFileIcon = (file: { file: File | { type: string; name: string } }) => {
+export const getFileIcon = (file: { file: File | { type: string; name: string } }) => {
 	const fileType =
 		file.file instanceof File ? file.file.type : file.file.type;
 	const fileName =
@@ -197,9 +197,7 @@ export function FileUploader({
 					</DialogContent>
 				</Dialog>
 
-				<Button
-					size="sm"
-					className="bg-black/80 hover:bg-black/70 ml-auto">
+				<Button size="sm" variant="outline" className="ml-auto">
 					Save
 				</Button>
 			</div>

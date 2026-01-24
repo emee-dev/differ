@@ -5,7 +5,7 @@ use anyhow::Ok;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    differ_lib::run().await;
+    differ_lib::run().await?;
 
     Ok(())
 }

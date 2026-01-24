@@ -1,19 +1,22 @@
-use convex::ConvexError;
+use axum::{
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
+};
+
 use serde::Serialize;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum AppError {
-    #[error(transparent)]
-    SubscriptionError(#[from] ConvexError),
+    #[error("Invalid model or provider")]
+    InvalidModel,
 
-    // #[error("Url error: {0}")]
-    // UrlParseError(#[from] ParseError),
+    #[error("Model execution failed")]
+    ModelError,
 
-    // #[error("Invalid request: {0}")]
-    // RequestError(String),
-    #[error("Unknown error")]
-    Unknown,
+    #[error("Bad request: {0}")]
+    BadRequest(String),
 }
 
 impl Serialize for AppError {

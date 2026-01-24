@@ -40,7 +40,6 @@ function DialogOverlay({ className, overlay, ...props }: DialogOverlayProps) {
 		<DialogPrimitive.Overlay
 			data-slot="dialog-overlay"
 			className={cn(
-				// 'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50',
 				"data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50",
 				{
 					"bg-muted-foreground/20 transition-opacity backdrop-blur-[2px]":
@@ -79,7 +78,7 @@ function DialogContent({
 				{...props}>
 				{children}
 				{showCloseButton && (
-					<div className="flex items-center gap-x-2 absolute right-1 top-1 bg-backgroundx rounded-md">
+					<div className="flex items-center gap-x-1.5 absolute right-1 top-1 bg-backgroundx rounded-md">
 						{moreItems}
 
 						<DialogPrimitive.Close

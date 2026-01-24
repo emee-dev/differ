@@ -1,5 +1,5 @@
-import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
+import { getCurrentWindow as _tauriCurrentWindow } from "@tauri-apps/api/window";
+import { UIMessage } from "ai";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -7,18 +7,31 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-export const filePicker = async () => {
-	const file_path = await open({
-		multiple: false,
-		directory: false,
-	});
+export function sanitizeText(text: string) {
+	return text.replace("<has_function_call>", "");
+}
 
-	if (!file_path) return null;
+export function getTextFromMessage(message: UIMessage): string {
+	return message.parts
+		.filter((part) => part.type === "text")
+		.map((part) => (part as { type: "text"; text: string }).text)
+		.join("");
+}
 
-	const data = (await invoke("read_file", { file_path })) as {
-		name: string;
-		contents: string;
-	};
+export const getCurrentWindow = () => {
+	if (typeof window !== undefined && (window as any)?.isTauri) {
+		return _tauriCurrentWindow();
+	} else {
+		return {
+			minimize() {},
+			toggleMaximize() {},
+			close() {},
+		};
+	}
+};
 
-	return data;
+export const isTauri = () => {
+	return (
+		typeof window !== undefined && ((window as any)?.isTauri as boolean)
+	);
 };
