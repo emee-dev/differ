@@ -1,11 +1,11 @@
 use crate::constants::{APP_ID, ATTACHMENTS};
-use crate::ipc_convex::convex_delete_paste;
 use crate::db_pastebin::create_paste;
 use crate::db_pastebin::delete_paste_by_id;
 use crate::db_pastebin::find_many;
 use crate::db_pastebin::findone_by_id;
 use crate::db_pastebin::AttachmentRecord;
 use crate::db_pastebin::PasteRecord;
+use crate::ipc_convex::convex_delete_paste;
 use crate::prelude::*;
 use crate::utils::Utils;
 use convex::FunctionResult;
@@ -16,7 +16,7 @@ use tauri::ipc::Channel;
 use tauri::Manager;
 use tauri::Runtime;
 use tauri::{self, AppHandle};
-use tokio::fs;
+use tokio::fs::{self, remove_dir_all};
 
 #[tauri::command(rename_all = "snake_case")]
 pub async fn cmd_get_paste_by_id<R: Runtime>(
@@ -66,6 +66,15 @@ pub async fn cmd_delete_local_paste_by_id(
 ) -> anyhow::Result<bool, AppError> {
     let state = app.state::<DbOnlyState>();
     let db = &state.db;
+
+    let document_dir = Utils::get_document_dir().map_err(|_| AppError::NotFound)?;
+    let document_dir = document_dir.to_str().ok_or(AppError::NotFound)?;
+
+    let attachment_dir = format!("{}/{}/{}/{}", document_dir, APP_ID, ATTACHMENTS, paste_id);
+    let attachment_dir = Utils::normalise_path(attachment_dir.as_str());
+
+    // Ignore errors
+    remove_dir_all(attachment_dir).await.ok();
 
     let operation = delete_paste_by_id(db, paste_id).await.map_err(to_app_err)?;
 
@@ -141,7 +150,7 @@ pub async fn cmd_is_synced(
 pub async fn cmd_sync_app_to_remote_server(
     app: AppHandle,
     app_id: &str,
-) -> anyhow::Result<IsSyncedResponse, AppError> {
+) -> anyhow::Result<(), AppError> {
     let app_state = app.state::<DbOnlyState>();
 
     let mut convex_client = app_state.convex_client.clone();
@@ -159,7 +168,7 @@ pub async fn cmd_sync_app_to_remote_server(
         FunctionResult::Value(value) => {
             let json_value = value.export();
 
-            Ok(serde_json::from_value::<IsSyncedResponse>(json_value)?)
+            Ok(serde_json::from_value::<_>(json_value)?)
         }
         FunctionResult::ConvexError(err) => Err(AppError::Convex(err.to_string())),
         FunctionResult::ErrorMessage(err_msg) => Err(AppError::Convex(err_msg)),
@@ -184,7 +193,7 @@ pub struct Attachment {
     pub id: String,
 
     #[serde(rename = "_creationTime")]
-    pub creation_time: i32,
+    pub creation_time: f64,
 
     #[serde(rename = "pasteId")]
     pub paste_id: String,
@@ -234,7 +243,7 @@ pub async fn cmd_save_remote_paste_locally(
     paste_id: &str,
     body: &str,
     channel: Channel<DownloadEvent<'_>>,
-) -> anyhow::Result<bool, AppError> {
+) -> anyhow::Result<String, AppError> {
     let state = app.state::<DbOnlyState>();
     let db = &state.db;
 
@@ -279,6 +288,8 @@ pub async fn cmd_save_remote_paste_locally(
         })
         .ok();
 
+    let local_paste_id = Utils::get_random_id();
+
     for file in files {
         let download_url = file.download_url.unwrap_or_else(|| "".into());
 
@@ -294,7 +305,7 @@ pub async fn cmd_save_remote_paste_locally(
             continue;
         }
 
-        let attachment_dir = format!("{}/{}/{}", app_directory, ATTACHMENTS, paste_id);
+        let attachment_dir = format!("{}/{}/{}", app_directory, ATTACHMENTS, local_paste_id);
 
         let file_path = format!("{}/{}", attachment_dir, file.original_file_name);
 
@@ -333,7 +344,7 @@ pub async fn cmd_save_remote_paste_locally(
     }
 
     let paste = PasteRecord {
-        id: Utils::get_random_id(),
+        id: local_paste_id.clone(),
         body: body.into(),
         attachments,
         created_at,
@@ -342,8 +353,9 @@ pub async fn cmd_save_remote_paste_locally(
 
     channel.send(DownloadEvent::Done {}).ok();
 
-    let query = create_paste(db, paste).await.map_err(to_app_err)?;
+    create_paste(db, paste).await.map_err(to_app_err)?;
     convex_delete_paste(convex_client, args).await?;
 
-    Ok(query.rows_affected() == 1)
+    // Ok(query.rows_affected() == 1)
+    Ok(local_paste_id)
 }

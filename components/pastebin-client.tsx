@@ -1,5 +1,4 @@
 import { EditorPanel } from "@/components/editor-panel";
-import { getFileIcon } from "@/components/file-uploader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +36,7 @@ import {
 	formatBytes,
 	useFileUpload,
 } from "@/hooks/use-file-upload";
+import { getFileIcon } from "@/lib/utils";
 import axios from "axios";
 import { useMutation, useQuery } from "convex/react";
 import {

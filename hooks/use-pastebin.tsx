@@ -13,6 +13,7 @@ import {
 	SyncAppArgs,
 } from "@/lib/ipc/pastebin";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { DownloadChannel } from "./use-download";
@@ -136,13 +137,20 @@ export const useSyncApp = () => {
 
 export const useDeleteLocalPaste = () => {
 	const queryClient = useQueryClient();
+	const navigate = useNavigate();
+	const params = useParams({
+		from: "/pastebin/$pasteId",
+		shouldThrow: false,
+	});
 
 	return useMutation({
 		mutationKey: ["delete_local_paste_by_id"],
 		mutationFn: async (pasteId: string) => {
-			return await cmd_delete_local_paste_by_id(pasteId);
+			await cmd_delete_local_paste_by_id(pasteId);
+
+			return pasteId;
 		},
-		onSuccess() {
+		onSuccess(pasteId) {
 			queryClient.invalidateQueries({
 				queryKey: ["query_local_pastes"],
 			});
@@ -151,6 +159,12 @@ export const useDeleteLocalPaste = () => {
 				description:
 					"The paste has been removed from your local storage.",
 			});
+
+			if (params?.pasteId === pasteId) {
+				navigate({
+					to: "/pastebin",
+				});
+			}
 		},
 
 		onError(error) {
@@ -196,22 +210,39 @@ export const useDeleteRemotePaste = () => {
 
 export const useSaveRemotePasteLocally = (channel: DownloadChannel | null) => {
 	const queryClient = useQueryClient();
+	const navigate = useNavigate();
 
 	return useMutation({
 		mutationKey: ["save_remote_paste_locally"],
 		mutationFn: async (args: SaveRemotePasteLocally) => {
 			if (!channel) return;
-			return await cmd_save_remote_paste_locally(args, channel);
+			const localPasteId = await cmd_save_remote_paste_locally(
+				args,
+				channel,
+			);
+
+			return localPasteId;
 		},
 
-		onSuccess() {
-			queryClient.invalidateQueries({
-				queryKey: ["query_local_pastes"],
-			});
+		onSuccess: async (localPasteId) => {
+			if (!localPasteId) return;
 
 			toast.success("Paste saved locally", {
 				description:
 					"The remote paste has been downloaded and stored locally.",
+			});
+
+			queryClient.invalidateQueries({
+				queryKey: ["query_local_pastes"],
+			});
+
+			await new Promise((r) => setTimeout(r, 500));
+
+			navigate({
+				to: "/pastebin/$pasteId",
+				params: {
+					pasteId: localPasteId,
+				},
 			});
 		},
 

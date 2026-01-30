@@ -159,3 +159,63 @@ impl Utils {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn test_normalise_path_replaces_backslashes() {
+        let input = r"C:\Users\Test\Documents";
+        let result = Utils::normalise_path(input);
+
+        assert_eq!(result, "C:/Users/Test/Documents");
+    }
+
+    #[test]
+    fn test_normalise_path_handles_double_backslashes() {
+        let input = r"C:\\Users\\Test";
+        let result = Utils::normalise_path(input);
+
+        assert_eq!(result, "C:/Users/Test");
+    }
+
+    #[test]
+    fn test_get_document_dir_returns_path() {
+        let dir = Utils::get_document_dir();
+
+        assert!(dir.is_ok());
+        let dir: PathBuf = dir.unwrap();
+        assert!(dir.exists());
+    }
+
+    #[test]
+    fn test_get_random_id_is_valid_uuid() {
+        let id = Utils::get_random_id();
+
+        // UUID v4 string length is always 36
+        assert_eq!(id.len(), 36);
+
+        // Should be parseable as UUID
+        assert!(uuid::Uuid::parse_str(&id).is_ok());
+    }
+
+    #[test]
+    fn test_get_random_port_returns_non_zero_port() {
+        let port = Utils::get_random_port();
+
+        assert!(port > 0);
+    }
+
+    #[test]
+    fn test_get_timestamp_format() {
+        let timestamp = Utils::get_timestamp();
+
+        // Expected format: YYYY-MM-DD HH:MM:SS
+        assert_eq!(timestamp.len(), 19);
+        assert!(timestamp.contains('-'));
+        assert!(timestamp.contains(':'));
+        assert!(timestamp.contains(' '));
+    }
+}

@@ -17,17 +17,9 @@ import {
 	useSaveRemotePasteLocally,
 } from "@/hooks/use-pastebin";
 import { LocalPastes, RemotePastes } from "@/lib/ipc/pastebin";
-import {
-	FileArchiveIcon,
-	FileIcon,
-	FileSpreadsheetIcon,
-	FileTextIcon,
-	HeadphonesIcon,
-	ImageIcon,
-	SaveIcon,
-	TrashIcon,
-	VideoIcon,
-} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useNavigate } from "@tanstack/react-router";
+import { ExternalLink, FileTextIcon, SaveIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -38,91 +30,7 @@ export type PasteHistory = {
 	date: string;
 };
 
-export const getFileIcon = (file: {
-	file: File | { type: string; name: string };
-}) => {
-	const fileType =
-		file.file instanceof File ? file.file.type : file.file.type;
-	const fileName =
-		file.file instanceof File ? file.file.name : file.file.name;
-
-	if (
-		fileType.includes("pdf") ||
-		fileName.endsWith(".pdf") ||
-		fileType.includes("word") ||
-		fileName.endsWith(".doc") ||
-		fileName.endsWith(".docx")
-	) {
-		return <FileTextIcon className="size-4 opacity-60" />;
-	}
-	if (
-		fileType.includes("zip") ||
-		fileType.includes("archive") ||
-		fileName.endsWith(".zip") ||
-		fileName.endsWith(".rar")
-	) {
-		return <FileArchiveIcon className="size-4 opacity-60" />;
-	}
-	if (
-		fileType.includes("excel") ||
-		fileName.endsWith(".xls") ||
-		fileName.endsWith(".xlsx")
-	) {
-		return <FileSpreadsheetIcon className="size-4 opacity-60" />;
-	}
-	if (fileType.includes("video/")) {
-		return <VideoIcon className="size-4 opacity-60" />;
-	}
-	if (fileType.includes("audio/")) {
-		return <HeadphonesIcon className="size-4 opacity-60" />;
-	}
-	if (fileType.startsWith("image/")) {
-		return <ImageIcon className="size-4 opacity-60" />;
-	}
-	return <FileIcon className="size-4 opacity-60" />;
-};
-
-export const getLocalFileIcon = (file: { type: string; name: string }) => {
-	const fileType = file.type;
-	const fileName = file.name;
-
-	if (
-		fileType.includes("pdf") ||
-		fileName.endsWith(".pdf") ||
-		fileType.includes("word") ||
-		fileName.endsWith(".doc") ||
-		fileName.endsWith(".docx")
-	) {
-		return <FileTextIcon className="size-4 opacity-60" />;
-	}
-	if (
-		fileType.includes("zip") ||
-		fileType.includes("archive") ||
-		fileName.endsWith(".zip") ||
-		fileName.endsWith(".rar")
-	) {
-		return <FileArchiveIcon className="size-4 opacity-60" />;
-	}
-	if (
-		fileType.includes("excel") ||
-		fileName.endsWith(".xls") ||
-		fileName.endsWith(".xlsx")
-	) {
-		return <FileSpreadsheetIcon className="size-4 opacity-60" />;
-	}
-	if (fileType.includes("video/")) {
-		return <VideoIcon className="size-4 opacity-60" />;
-	}
-	if (fileType.includes("audio/")) {
-		return <HeadphonesIcon className="size-4 opacity-60" />;
-	}
-	if (fileType.startsWith("image/")) {
-		return <ImageIcon className="size-4 opacity-60" />;
-	}
-	return <FileIcon className="size-4 opacity-60" />;
-};
-
-export const RecentPastes = () => {
+export const RecentPastes = (props: { className?: string }) => {
 	const [toggleRecentDialog, setToggleRecentDialog] = useState(false);
 	const { data: remotePastes, error } = useConvexQuery(
 		"fns:get_recent_pastes",
@@ -133,12 +41,12 @@ export const RecentPastes = () => {
 	useEffect(() => {
 		if (!error) return;
 
-		toast.error("Unable to recent pastes", {
+		toast.error("Unable to fetch recent pastes", {
 			description:
 				"Recent pastes could not be retrieved. Please restart the app if the issue persists.",
 		});
 
-		console.error("Failed to recent pastes:", error);
+		console.error("Failed to fetch recent pastes:", error);
 	}, [error]);
 
 	return (
@@ -146,7 +54,10 @@ export const RecentPastes = () => {
 			open={toggleRecentDialog}
 			onOpenChange={setToggleRecentDialog}>
 			<DialogTrigger asChild>
-				<Button variant="outline" size="sm">
+				<Button
+					variant="outline"
+					size="sm"
+					className={cn(props.className)}>
 					Recent Pastes
 				</Button>
 			</DialogTrigger>
@@ -159,6 +70,18 @@ export const RecentPastes = () => {
 				</DialogHeader>
 
 				<div className="overflow-auto max-h-64 scrollbar-hide">
+					{!remotePastes && !localPastes && (
+						<div className="h-28 flex flex-col items-center justify-center text-center px-4">
+							<p className="text-sm font-medium">
+								Nothing here yet
+							</p>
+							<p className="text-sm text-muted-foreground mt-1 max-w-xs">
+								When items are added, they’ll
+								show up here.
+							</p>
+						</div>
+					)}
+
 					{remotePastes && remotePastes.length > 0 && (
 						<div className="space-y-2">
 							{remotePastes.map((file) => (
@@ -192,6 +115,7 @@ export const RecentPastes = () => {
 };
 
 const RenderLocalPaste = ({ file }: { file: LocalPastes }) => {
+	const navigate = useNavigate();
 	const { mutate: deleteLocalPaste } = useDeleteLocalPaste();
 
 	return (
@@ -204,7 +128,6 @@ const RenderLocalPaste = ({ file }: { file: LocalPastes }) => {
 				</div>
 
 				<div className="flex min-w-0 flex-col gap-0.5">
-					{/* filename + badge row */}
 					<div className="flex items-center gap-1 min-w-0">
 						<p className="truncate text-[13px] font-medium">
 							{file.body}
@@ -225,6 +148,21 @@ const RenderLocalPaste = ({ file }: { file: LocalPastes }) => {
 					className="size-8 text-muted-foreground/80 hover:bg-transparent hover:text-foreground"
 					onClick={() => deleteLocalPaste(file.id)}>
 					<TrashIcon className="size-4" />
+				</Button>
+				<Button
+					aria-label="Open paste"
+					size="icon"
+					variant="ghost"
+					className="size-8 text-muted-foreground/80 hover:bg-transparent hover:text-foreground"
+					onClick={() => {
+						navigate({
+							to: "/pastebin/$pasteId",
+							params: {
+								pasteId: file.id,
+							},
+						});
+					}}>
+					<ExternalLink className="size-4" />
 				</Button>
 			</div>
 		</div>
@@ -250,6 +188,18 @@ const RenderRemotePaste = ({
 	const { mutate: saveRemotePasteLocally } =
 		useSaveRemotePasteLocally(channel);
 
+	const createdAt = new Date(Math.floor(file._creationTime)).toLocaleString(
+		"en-US",
+		{
+			year: "numeric",
+			month: "short",
+			day: "numeric",
+			hour: "2-digit",
+			minute: "2-digit",
+			second: "2-digit",
+		},
+	);
+
 	return (
 		<div
 			key={file._id}
@@ -272,7 +222,7 @@ const RenderRemotePaste = ({
 					</div>
 
 					<p className="text-xs text-muted-foreground">
-						{file._creationTime}
+						{createdAt}
 					</p>
 				</div>
 			</div>
@@ -293,7 +243,6 @@ const RenderRemotePaste = ({
 					variant="ghost"
 					className="size-8 text-muted-foreground/80 hover:bg-transparent hover:text-foreground"
 					onClick={() => {
-						// onSave();
 						saveRemotePasteLocally({
 							_id: file._id,
 							body: file.body,

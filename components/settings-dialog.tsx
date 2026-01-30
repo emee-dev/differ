@@ -57,7 +57,8 @@ export function SettingsDialog() {
 	const { mutate: openURL } = useOpenURL();
 	const { isPending, mutate } = useUpdateAppConfig();
 	const location = useLocation();
-	const { section, setSection, open, onOpenChange } = useSettingsDialog();
+	const { section, setSection, open, onOpenChange, toggleDialog } =
+		useSettingsDialog();
 	const { data: tasks } = useAllTasks();
 	const [copied, setCopied] = useState<boolean>(false);
 	const [rememberScreen, setRememberScreen] = useState<boolean>(true);
@@ -400,6 +401,9 @@ export function SettingsDialog() {
 													appId: config.app_id,
 												},
 											);
+
+											// Close dialog
+											toggleDialog();
 										}}
 										className="gap-2">
 										{isSyncing ? (

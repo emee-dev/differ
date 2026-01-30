@@ -1,5 +1,5 @@
 import { EditorPanel } from "@/components/editor-panel";
-import { getFileIcon, RecentPastes } from "@/components/file-uploader";
+import { RecentPastes } from "@/components/file-uploader";
 import AppNavbar from "@/components/nav-bar";
 import { uploadFile } from "@/components/pastebin-client";
 import { useSettingsDialog } from "@/components/settings-provider";
@@ -14,6 +14,7 @@ import {
 import { useIsSynced, useRemoteSavePaste } from "@/hooks/use-pastebin";
 import { useTask } from "@/hooks/use-task";
 import { cmd_convex_query } from "@/lib/ipc/pastebin";
+import { getFileIcon } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import axios from "axios";
 import { AlertCircleIcon, FileUpIcon, XIcon } from "lucide-react";
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/pastebin/")({
 
 function RouteComponent() {
 	const { data: config } = useQueryAppConfig();
-	const { data } = useIsSynced(config?.app_id);
+	const { data, isLoading } = useIsSynced(config?.app_id);
 	const { toggleDialog } = useSettingsDialog();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [value, setValue] = useState<string>("");
@@ -39,14 +40,26 @@ function RouteComponent() {
 		multiple: true,
 	});
 
-	useTask(async (data) => {
-		if (!data || !data.isSynced) {
-			return;
-		}
-
+	useTask(async () => {
 		const killTask = await cmd_convex_query();
 		return () => killTask();
-	}, data);
+	});
+
+	if (isLoading) {
+		return (
+			<>
+				<AppNavbar />
+
+				<div className="flex min-h-[60vh] items-center justify-center p-4">
+					<div className="max-w-md text-center space-y-4">
+						<h2 className="text-lg font-semibold">
+							Loading page please wait
+						</h2>
+					</div>
+				</div>
+			</>
+		);
+	}
 
 	if (!data || !data.isSynced) {
 		return (
@@ -94,9 +107,11 @@ function RouteComponent() {
 							<button
 								type="button"
 								className="ml-auto flex items-center gap-x-1.5 text-muted-foreground hover:text-foreground transition"
-								onClick={() =>
-									uploadActions.openFileDialog()
-								}>
+								onClick={() => {
+									if (isSubmitting) return;
+
+									uploadActions.openFileDialog();
+								}}>
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
 									viewBox="0 0 24 24"
@@ -123,6 +138,7 @@ function RouteComponent() {
 					uploadActions={uploadActions}
 					resetEditor={() => {
 						setValue("");
+						uploadActions.clearFiles();
 					}}
 					setIsSubmitting={setIsSubmitting}
 				/>

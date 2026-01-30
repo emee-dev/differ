@@ -69,7 +69,7 @@ export const cmd_save_remote_paste_locally = async (
 		paste_id: args._id,
 		body: args.body,
 		channel,
-	})) as boolean;
+	})) as string;
 };
 
 export const cmd_delete_local_paste_by_id = async (pasteId: string) => {
