@@ -1,69 +1,55 @@
 ## Differ
 
-Differ is a minimal dev utility app aimed at providing a set of tools that developers are more likely to use everyday. Such tools includes AI chat, Cross device Pastebin and Code snippet diff checker. It can also be used as a standard Tauri template providing best practices regarding Async rust, error handling, Unit tests and memory safety in general.
+Differ is a minimal dev utility app aimed at providing a set of tools that developers are more likely to use every day. Such tools include AI chat, cross-device Pastebin, and a code snippet diff checker. It can also be used as a standard Tauri template, providing best practices regarding async Rust, error handling, unit tests, and memory safety in general.
 
+## Inspiration
 
-## INSPIRATION
------------
-I was heavy inspired by the most recent Cloudflare `unwrap()` bug which took down a major portion of the internet. Other inspirations came from my undying passion for entrepreneurship building `Panda http` which ultimately lead to rust in the first place.
-
+I was heavily inspired by the most recent Cloudflare `unwrap()` bug, which took down a major portion of the internet. Other inspirations came from my undying passion for entrepreneurship building `Panda HTTP`, which ultimately led me to Rust in the first place.
 
 ## What problem were you solving?
-This application has 3 distinctive features namely:
-- Diff checker: this feature makes it easy and intuitive to spot differences in text, which are then highlighted intuitively making it robust for easily catching errors or typo(s) you would have missed if done manually.
-- AI chat: in todays age of cloud computing it is becoming increasingly hard to always retain a copy of your data or transactions online. This feature allows you to maintain or retain a locally stored copy of all your AI chats, providing an intuitive user interface that does not block your daily chats. It is very fast and minimal as you can imagine.
-- Pastebin: This is a personal problem, I usually find it frustrating to copy and paste text to/from my phone and laptop. This utility enables me to send text/attachments anything from my mobile phone to my laptop vice versa.
+
+This application has three distinctive features, namely:
+
+- **Diff checker**: This feature makes it easy and intuitive to spot differences in text, which are highlighted clearly. It is robust for catching differences or typos you would have missed if done manually.
+- **AI chat**: In today’s age of cloud computing, it is becoming increasingly hard to always retain a copy of your data or transactions online. This feature allows you to maintain a locally stored copy of all your AI chats, providing an intuitive user interface that does not block your daily usage. It is very fast and minimal.
+- **Pastebin**: This is a personal problem. I usually find it frustrating to copy and paste text to and from my phone and laptop. This utility enables me to send text or attachments from my mobile phone to my laptop, and vice versa.
 
 ## Why does this problem matter?
-This is application has been carefully crafted with runtime memory safety, error handling in mind. As I highlighted above, the recent cloudflare bug really dealt a lot of damage to most of us on the internet. With that in mind, I painstakingly made my app such that there is no `unwrap` or `.expect()` used unless explicit required to crash the application. The app is very error resilient according to my current knowledge and experience on rust.
 
+This application has been carefully crafted with runtime memory safety and error handling in mind. As highlighted above, the recent Cloudflare bug dealt a lot of damage to many of us on the internet. With that in mind, I painstakingly designed this app such that there is no use of `unwrap` or `.expect()` unless explicitly required to crash the application. The app is very error-resilient, according to my current knowledge and experience with Rust.
 
-## WHAT IT DOES
-------------
-High-level explanation of the application.
+## Architecture Overview
 
-- Core features
-- Main user flows
-- Key interactions
+**Frontend**
+- React  
+- TanStack Query & Router  
+- Vercel AI SDK  
 
+**Backend**
+- Rust (Tauri)  
+- Convex  
+- aisdk.rs  
+- anyhow / thiserror  
+- Tokio async runtime  
+- Serde  
+- Axum  
 
-## ARCHITECTURE OVERVIEW
----------------------
+**Database**
+- SQLite with SQLx ORM  
 
-Tech Stack
+**Tooling**
+- Vite  
+- Pnpm  
+- Cargo  
+- Clippy  
+
+### Project Structure
 ~~~~~~~~~~
-Frontend:
-- React 
-- Tanstack query & router
-- vercel aisdk
-
-Backend:
-- rust (Tauri)
-- convex
-- aisdk.rs
-- anyhow / thiserror
-- tokio async runtime
-- serde
-- axum
-
-Database:
-- SQLite with SQLx ORM
-
-Tooling:
-- Vite
-- pnpm
-- cargo
-- clippy
-
-
-PROJECT STRUCTURE
------------------
-.
 ├── prototype/              Used for mocking/testing functions without Tauri IPC
 ├── src/                    Frontend source code
 │   ├── components/
 │   ├── convex/
-│   ├── lib/ipc/*           IPC functions
+│   ├── lib/ipc/*           IPC client functions
 │   ├── hooks/              React hooks for querying & mutations
 │   └── main.tsx
 │
@@ -92,82 +78,60 @@ PROJECT STRUCTURE
 ~~~~~~~~~~
 
 
-### SETUP & INSTALLATION
---------------------
+## SETUP & INSTALLATION
 
 Prerequisites:
-- Node.js >= v25.1.0
-- pnpm@10.20.0 / npm / yarn
-- Rust >= <version>
-- Tauri CLI
+- Node.js v25.1.0
+- pnpm@10.20.0
+- rustc: 1.92.0
+- cargo: 1.92.0
+- rustup: 1.28.2
 
-Install Tauri CLI:
-cargo install tauri-cli
+```bash
+git clone https://github.com/emee-dev/differ
 
-Install dependencies:
+cd differ
+```
+
+Install dependencies
+```bash
 pnpm install
+```
 
 Run in development:
+
+```bash
 pnpm tauri dev
 
-Build for production:
-pnpm tauri build
+# pnpm tauri build 
+```
 
-
-SECURITY & PERFORMANCE
-----------------------
+## SECURITY & PERFORMANCE
 - Secure IPC command boundaries
 - Restricted Tauri API permissions
-- Rust memory safety guarantees
+- Utilizing sqlx for secure database queries. 
 - Fast startup time
 - Small production binary size
 
 
-ACHIEVEMENTS
-------------
-- Built a full desktop app within hackathon time limits
-- Successfully integrated Rust with a modern frontend
-- Clean separation between UI and system logic
-- Zero usage of ``
-
-
-LESSONS LEARNED
----------------
+## LESSONS LEARNED
 - Understanding Tauri’s IPC model
 - Managing async Rust with application state
 - Structuring Rust code for maintainability
 - Balancing speed vs polish during a hackathon
+- Handling errors are early as possible
 
 
-CHALLENGES FACED
-----------------
+## CHALLENGES FACED
 - Rust compile-time errors and ownership rules
-- Tauri configuration and permissions
-- Debugging frontend-backend communication
-- Cross-platform differences
+- Unit testing rust code, trying to figure out what to test
+- Async rust
+- Understanding of threads and where best to use them.
 
 
-FUTURE IMPROVEMENTS
--------------------
-- Plugin architecture
-- Auto-updates
-- Offline-first support
-- Enhanced error handling
-- More native OS integrations
+## TEAM
+- Emmanuel Ajike — Solo
 
 
-TEAM & CONTRIBUTIONS
---------------------
-- <Name> — Frontend
-- <Name> — Rust / Backend
-- <Name> — Design / Architecture
-
-
-LICENSE
--------
+## LICENSE
 MIT
-
-
-FINAL NOTES
------------
-Built with Rust and Tauri during <Hackathon Name>.
