@@ -7,7 +7,7 @@ export type ChatsRecord = {
 	messages: Message[];
 };
 
-export const saveInitialChat = async (chat: ChatsRecord) => {
+export const cmd_save_initial_chat = async (chat: ChatsRecord) => {
 	return await invoke("cmd_save_initial_chat", {
 		chat: {
 			id: chat.id,
@@ -17,13 +17,13 @@ export const saveInitialChat = async (chat: ChatsRecord) => {
 	});
 };
 
-export const getChatById = async (chatId: string) => {
+export const cmd_get_chat_by_id = async (chatId: string) => {
 	return (await invoke("cmd_get_chat_by_id", {
 		chat_id: chatId,
 	})) as Omit<ChatsRecord, "messages"> & { messages: string };
 };
 
-export const deleteChatById = async (chatId: string) => {
+export const cmd_delete_chat_by_id = async (chatId: string) => {
 	return (await invoke("cmd_delete_chat_by_id", {
 		chat_id: chatId,
 	})) as boolean;
@@ -34,14 +34,14 @@ export type UpdateChat = {
 	messages: Message[];
 };
 
-export const updateChat = async (args: UpdateChat) => {
+export const update_chat_message = async (args: UpdateChat) => {
 	return (await invoke("update_chat_message", {
 		chat_id: args.chat_id,
 		messages: JSON.stringify(args.messages),
 	})) as boolean;
 };
 
-export const queryRecentChats = async () => {
+export const cmd_find_recent_chats = async () => {
 	const results = (await invoke(
 		"cmd_find_recent_chats",
 		{},

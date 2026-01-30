@@ -46,7 +46,6 @@ export const getAccount = query({
 export const createAccount = mutation({
 	args: {
 		appId: v.string(),
-		password: v.string(),
 
 		// device info
 		label: v.string(),
@@ -67,7 +66,6 @@ export const createAccount = mutation({
 
 		const accountId = await ctx.db.insert("accounts", {
 			appId: args.appId,
-			password: args.password,
 		});
 
 		await ctx.db.insert("devices", {
@@ -114,14 +112,12 @@ export const savePaste = mutation({
 		accountId: v.string(),
 		appId: v.string(),
 		body: v.string(),
-		date: v.string(),
 	},
 	handler: async (ctx, args) => {
 		return await ctx.db.insert("pastebins", {
 			accountId: args.accountId as Id<"accounts">,
 			appId: args.appId,
 			body: args.body,
-			date: args.date,
 		});
 	},
 });
@@ -172,11 +168,13 @@ export const storeMetadata = mutation({
 	args: {
 		pasteId: v.string(),
 		originalFileName: v.string(),
+		originalFileSize: v.string(),
 		storageId: v.id("_storage"),
 	},
 	handler: async (ctx, args) => {
 		await ctx.db.insert("attachments", {
 			originalFileName: args.originalFileName,
+			originalFileSize: args.originalFileSize,
 			pasteId: args.pasteId as Id<"pastebins">,
 			storageId: args.storageId,
 		});

@@ -1,3 +1,4 @@
+import { useSettingsDialog } from "@/components/settings-provider";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -8,26 +9,38 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { useQueryAppConfig, useUpdateAppConfig } from "@/hooks/use-app-config";
-import { AppConfig } from "@/lib/fns/utils";
+import {
+	useAllTasks,
+	useOpenURL,
+	useQueryAppConfig,
+	useUpdateAppConfig,
+} from "@/hooks/use-app-utils";
+import { useSyncApp } from "@/hooks/use-pastebin";
+import { AppConfig } from "@/lib/ipc/utils";
+import { Providers } from "@/lib/llms";
 import { cn } from "@/lib/utils";
 import { useLocation } from "@tanstack/react-router";
 import {
 	Check,
 	Clipboard,
+	Cpu,
+	ExternalLink,
 	KeyRound,
 	Loader,
+	Save,
 	Settings as SettingsIcon,
 	Shield,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-
-interface SettingsDialogProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-}
+import React, { useEffect, useState } from "react";
+import { AllTasks } from "./tasks";
 
 type ApiKeys = Required<
 	Omit<
@@ -36,15 +49,20 @@ type ApiKeys = Required<
 	>
 >;
 
-export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
+export function SettingsDialog() {
+	const pasteClient = import.meta.env.VITE_PASTE_BIN_CLIENT;
 	const { data: config } = useQueryAppConfig();
-
+	const { mutate: syncAppToRemoteServer, isPending: isSyncing } =
+		useSyncApp();
+	const { mutate: openURL } = useOpenURL();
+	const { isPending, mutate } = useUpdateAppConfig();
 	const location = useLocation();
-	const [section, setSection] = useState<"general" | "api" | "paste">(
-		"general",
-	);
+	const { section, setSection, open, onOpenChange } = useSettingsDialog();
+	const { data: tasks } = useAllTasks();
 	const [copied, setCopied] = useState<boolean>(false);
 	const [rememberScreen, setRememberScreen] = useState<boolean>(true);
+	const [selectedProvider, setSelectedProvider] =
+		useState<Providers>("google");
 
 	const [apiKeys, setApiKeys] = useState<ApiKeys>({
 		groq_key: "",
@@ -52,8 +70,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 		openai_key: "",
 		anthropic_key: "",
 	});
-
-	const { isPending, mutate } = useUpdateAppConfig();
 
 	const [pastePassword, setPastePassword] = useState<string>("");
 
@@ -120,35 +136,34 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 								}>
 								Pastebins
 							</SidebarItem>
+							<SidebarItem
+								icon={
+									<Cpu className="h-4 w-4" />
+								}
+								active={section === "services"}
+								onClick={() =>
+									setSection("services")
+								}>
+								Services
+							</SidebarItem>
 						</nav>
 					</aside>
 
-					{/* Content */}
-					<main className="flex-1 overflow-y-auto p-6">
+					<main className="flex-1 overflow-y-auto p-6 scrollbar-hide">
 						{section === "general" && (
-							<Section
-								title="General"
-								description="Startup and identity settings">
-								<Row
-									title="Remember last screen"
-									description="Restore your previous workspace on launch"
-									action={
-										<Switch
-											checked={
-												rememberScreen
-											}
-											onCheckedChange={
-												setRememberScreen
-											}
-										/>
-									}
-								/>
-
-								<Separator />
-
+							<div className="space-y-6">
+								<div>
+									<h2 className="text-xl font-semibold">
+										General
+									</h2>
+									<p className="text-sm text-muted-foreground">
+										Startup and identity
+										settings
+									</p>
+								</div>
 								<div className="space-y-2">
 									<Label className="text-sm">
-										Application ID
+										AppId
 									</Label>
 									<div className="flex gap-2">
 										<Input
@@ -177,56 +192,122 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 										</Button>
 									</div>
 								</div>
-							</Section>
+
+								<div className="flex items-center justify-between rounded-lg border p-4">
+									<div className="space-y-1">
+										<p className="text-sm font-medium">
+											Remember last
+											screen
+										</p>
+										<p className="text-xs text-muted-foreground">
+											Restore your
+											previous
+											workspace on
+											launch
+										</p>
+									</div>
+									<Switch
+										checked={
+											rememberScreen
+										}
+										onCheckedChange={
+											setRememberScreen
+										}
+									/>
+								</div>
+							</div>
 						)}
 
 						{section === "api" && (
-							<Section
-								title="API Keys"
-								description="Stored locally on this machine">
-								<KeyField
-									label="Google"
-									placeholder="Your google secret"
-									value={apiKeys.google_key}
-									onChange={(v) =>
-										setApiKeys({
-											...apiKeys,
-											google_key: v,
-										})
-									}
-								/>
-								<KeyField
-									label="OpenAI"
-									placeholder="Your openai secret"
-									value={apiKeys.openai_key}
-									onChange={(v) =>
-										setApiKeys({
-											...apiKeys,
-											openai_key: v,
-										})
-									}
-								/>
-								<KeyField
-									label="Groq"
-									placeholder="Your groq secret"
-									value={apiKeys.groq_key}
-									onChange={(v) =>
-										setApiKeys({
-											...apiKeys,
-											groq_key: v,
-										})
-									}
-								/>
+							<div className="space-y-6">
+								<div>
+									<h2 className="text-xl font-semibold">
+										API Keys
+									</h2>
+									<p className="text-sm text-muted-foreground">
+										Stored locally on
+										this machine
+									</p>
+								</div>
+								<div className="space-y-4 max-w-xl">
+									<div className="space-y-2">
+										<Label className="text-sm">
+											Provider
+										</Label>
+										<Select
+											value={
+												selectedProvider
+											}
+											onValueChange={(
+												value,
+											) =>
+												setSelectedProvider(
+													value as Providers,
+												)
+											}>
+											<SelectTrigger>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="google">
+													Google
+												</SelectItem>
+												<SelectItem value="openai">
+													OpenAI
+												</SelectItem>
+												<SelectItem value="groq">
+													Groq
+												</SelectItem>
+												<SelectItem value="anthropic">
+													Anthropic
+												</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
 
-								<div className="flex items-center ">
+									<div className="space-y-2">
+										<Label className="text-sm">
+											{selectedProvider
+												.charAt(
+													0,
+												)
+												.toUpperCase() +
+												selectedProvider.slice(
+													1,
+												)}{" "}
+											API Key
+										</Label>
+										<Input
+											value={
+												apiKeys[
+													`${selectedProvider}_key` as keyof ApiKeys
+												]
+											}
+											placeholder={`Your ${selectedProvider} secret`}
+											onChange={(
+												e,
+											) =>
+												setApiKeys(
+													{
+														...apiKeys,
+														[`${selectedProvider}_key`]:
+															e
+																.target
+																.value,
+													},
+												)
+											}
+											className="font-mono text-sm"
+										/>
+									</div>
+								</div>
+
+								<div className="flex items-center pt-4">
 									<Button
 										className="ml-auto"
 										disabled={isPending}
 										onClick={() => {
 											if (!config) {
-												console.log(
-													"No config",
-												);
 												return;
 											}
 
@@ -237,6 +318,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 												groq_key: apiKeys.groq_key,
 												openai_key:
 													apiKeys.openai_key,
+												anthropic_key:
+													apiKeys.anthropic_key,
 												last_tab: location.pathname,
 											});
 										}}>
@@ -250,32 +333,104 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 										)}
 									</Button>
 								</div>
-							</Section>
+							</div>
 						)}
 
 						{section === "paste" && (
-							<Section
-								title="Pastebins"
-								description="Security options for shared pastes">
-								<div className="space-y-2 max-w-md">
-									<Label className="text-sm">
-										Paste password
-									</Label>
-									<Input
-										type="password"
-										placeholder="Your password"
-										value={
-											pastePassword
-										}
-										onChange={(e) =>
-											setPastePassword(
-												e.target
-													.value,
-											)
-										}
-									/>
+							<div className="space-y-4 h-full flex flex-col">
+								<div className="space-y-0.5">
+									<h2 className="text-xl font-semibold">
+										Pastebin
+									</h2>
+									<p className="text-sm text-muted-foreground">
+										Configure your app
+										for the pastebin
+										utility
+									</p>
 								</div>
-							</Section>
+								<div className="flex items-center gap-2 text-sm mt-2x">
+									<span className="text-muted-foreground">
+										Pastebin:
+									</span>
+
+									<div
+										className="inline-flex items-center gap-1 rounded-md px-2 py-1
+										text-primary underline-offset-4 hover:underline
+										hover:bg-muted transition-colors cursor-pointer"
+										onClick={() =>
+											openURL(
+												pasteClient,
+											)
+										}>
+										{pasteClient}
+										<ExternalLink className="size-4" />
+									</div>
+								</div>
+
+								<div className="space-y-5 max-w-md">
+									<div className="space-y-2">
+										<Label className="text-sm">
+											App ID
+										</Label>
+										<Input
+											placeholder="Your appId"
+											defaultValue={
+												config?.app_id ||
+												""
+											}
+											readOnly
+										/>
+									</div>
+								</div>
+
+								<div className="flex items-center justify-end mt-auto">
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={
+											isSyncing ||
+											!config
+										}
+										onClick={() => {
+											if (!config)
+												return;
+
+											syncAppToRemoteServer(
+												{
+													appId: config.app_id,
+												},
+											);
+										}}
+										className="gap-2">
+										{isSyncing ? (
+											<>
+												<Loader className="h-4 w-4 animate-spin" />
+												Syncing…
+											</>
+										) : (
+											<>
+												<Save className="h-4 w-4" />
+												Sync app
+											</>
+										)}
+									</Button>
+								</div>
+							</div>
+						)}
+
+						{section === "services" && (
+							<div className="space-y-6">
+								<div>
+									<h2 className="text-xl font-semibold">
+										Services
+									</h2>
+									<p className="text-sm text-muted-foreground">
+										Long-running tasks
+										and service status
+									</p>
+								</div>
+								<AllTasks tasks={tasks} />
+							</div>
 						)}
 					</main>
 				</div>
@@ -307,77 +462,5 @@ function SidebarItem({
 			{icon}
 			{children}
 		</button>
-	);
-}
-
-function Section({
-	title,
-	description,
-	children,
-}: {
-	title: string;
-	description?: string;
-	children: React.ReactNode;
-}) {
-	return (
-		<div className="space-y-6">
-			<div>
-				<h2 className="text-xl font-semibold">{title}</h2>
-				{description && (
-					<p className="text-sm text-muted-foreground">
-						{description}
-					</p>
-				)}
-			</div>
-			{children}
-		</div>
-	);
-}
-
-function Row({
-	title,
-	description,
-	action,
-}: {
-	title: string;
-	description?: string;
-	action: React.ReactNode;
-}) {
-	return (
-		<div className="flex items-center justify-between rounded-lg border p-4">
-			<div className="space-y-1">
-				<p className="text-sm font-medium">{title}</p>
-				{description && (
-					<p className="text-xs text-muted-foreground">
-						{description}
-					</p>
-				)}
-			</div>
-			{action}
-		</div>
-	);
-}
-
-function KeyField({
-	label,
-	value,
-	onChange,
-	placeholder,
-}: {
-	label: string;
-	placeholder: string;
-	value: string;
-	onChange: (v: string) => void;
-}) {
-	return (
-		<div className="space-y-1 max-w-xl">
-			<Label className="text-sm">{label} API key</Label>
-			<Input
-				value={value}
-				onChange={(e) => onChange(e.target.value)}
-				className="font-mono text-sm"
-				placeholder={placeholder}
-			/>
-		</div>
 	);
 }

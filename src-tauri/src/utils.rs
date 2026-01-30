@@ -1,16 +1,17 @@
+use crate::constants::{APP_ID, ATTACHMENTS, DB_ID};
 use crate::prelude::*;
 use chrono::Local;
 use directories::UserDirs;
+use futures_util::StreamExt;
 use port_selector::{random_free_tcp_port, Port};
 use sqlx::sqlite::SqlitePoolOptions;
-use std::fs;
-use std::path::PathBuf;
+use std::fs::File;
+use std::io::Write;
+use std::io::{BufReader, Cursor};
+use std::path::{Path, PathBuf};
+use tokio::fs;
 use tokio::fs::OpenOptions;
 use uuid::Uuid;
-
-pub const APP_ID: &str = "Differ";
-pub const DB_ID: &str = "differ.db";
-pub const ATTACHMENTS: &str = "attachments";
 
 pub struct Utils;
 
@@ -61,18 +62,24 @@ impl Utils {
             Err(msg) => panic!("Document directory error: {}", msg),
         };
 
-        let app_directory = format!("{}/{}", document_dir.to_str().unwrap_or(""), APP_ID);
+        let document_dir = document_dir.to_str().unwrap_or("");
+
+        if document_dir.is_empty() {
+            panic!("Failed to find documents");
+        }
+
+        let app_directory = format!("{}/{}", document_dir, APP_ID);
 
         let app_directory = Utils::normalise_path(app_directory.as_str());
         let db_directory = format!("{}/{}", app_directory, DB_ID);
         let attachments_directory = format!("{}/{}", app_directory, ATTACHMENTS);
 
-        match fs::create_dir_all(&app_directory) {
+        match fs::create_dir_all(&app_directory).await {
             Ok(_) => (),
             Err(msg) => panic!("Failed to create app directory: {:?}", msg),
         }
 
-        match fs::create_dir_all(&attachments_directory) {
+        match fs::create_dir_all(&attachments_directory).await {
             Ok(_) => (),
             Err(msg) => panic!("Failed to create attachments directory: {:?}", msg),
         }
@@ -105,5 +112,50 @@ impl Utils {
         }
 
         Ok(sql_pool)
+    }
+
+    pub fn init_env_variables() {
+        if cfg!(debug_assertions) {
+            dotenvy::from_filename("../.env.local").ok();
+        } else {
+            let source = include_str!("../../.env.local");
+
+            let cursor = Cursor::new(source.as_bytes());
+
+            let reader = BufReader::new(cursor);
+
+            dotenvy::from_read(reader).ok();
+        };
+    }
+
+    pub async fn download_file_with_progress<T: FnMut(u64, Option<u64>)>(
+        url: &str,
+        path: &Path,
+        mut cb: T,
+    ) -> AppResult<()> {
+        let resp = reqwest::get(url)
+            .await
+            .map_err(|x| AppError::Request(x.to_string()))?;
+
+        let mut file =
+            File::create(path).map_err(|_| AppError::File("Failed to create file".to_string()))?;
+
+        let total_size = resp.content_length();
+        let mut downloaded: u64 = 0;
+        let mut stream = resp.bytes_stream();
+
+        while let Some(chunk) = stream.next().await {
+            let chunk =
+                chunk.map_err(|_| AppError::Request("Failed to resolve next chunk".to_string()))?;
+
+            file.write_all(&chunk)
+                .map_err(|_| AppError::Request("Failed to write chunks".to_string()))?;
+
+            downloaded += chunk.len() as u64;
+
+            cb(downloaded, total_size);
+        }
+
+        Ok(())
     }
 }

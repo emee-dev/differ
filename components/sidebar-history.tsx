@@ -7,7 +7,7 @@ import {
 	SidebarMenu,
 } from "@/components/ui/sidebar";
 import { useDeleteChat } from "@/hooks/use-chat";
-import { ChatsRecord } from "@/lib/fns/chats";
+import { ChatsRecord } from "@/lib/ipc/chats";
 import { useParams } from "@tanstack/react-router";
 
 type SidebarHistoryProps = {

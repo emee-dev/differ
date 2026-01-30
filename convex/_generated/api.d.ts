@@ -10,7 +10,7 @@
 
 import type * as fns from "../fns.js";
 import type * as http from "../http.js";
-import type * as pastebin from "../pastebin.js";
+import type * as pastebin_client from "../pastebin_client.js";
 
 import type {
   ApiFromModules,
@@ -21,7 +21,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   fns: typeof fns;
   http: typeof http;
-  pastebin: typeof pastebin;
+  pastebin_client: typeof pastebin_client;
 }>;
 
 /**

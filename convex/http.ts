@@ -12,10 +12,11 @@ http.route({
 
 		const pasteId = sp.searchParams.get("pasteid");
 		const originalFileName = sp.searchParams.get("filename");
+		const originalFileSize = sp.searchParams.get("filesize");
 
-		if (!pasteId || !originalFileName) {
+		if (!pasteId || !originalFileName || !originalFileSize) {
 			return new Response(
-				"PasteId and filename are required to continue this request",
+				"PasteId, filename and filesize are required to continue this request",
 				{
 					status: 400,
 				},
@@ -25,10 +26,11 @@ http.route({
 		const blob = await request.blob();
 		const storageId = await ctx.storage.store(blob);
 
-		await ctx.runMutation(api.pastebin.storeMetadata, {
+		await ctx.runMutation(api.pastebin_client.storeMetadata, {
 			pasteId,
 			storageId,
 			originalFileName,
+			originalFileSize,
 		});
 
 		return new Response(null, {

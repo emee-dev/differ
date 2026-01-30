@@ -10,6 +10,7 @@ type EditorPanelProps = {
 	onFilePick?: () => Promise<void>;
 	className?: string;
 	customHeader?: ReactNode;
+	readOnly?: boolean;
 };
 
 export const EditorPanel = ({
@@ -19,13 +20,14 @@ export const EditorPanel = ({
 	onFilePick,
 	className,
 	customHeader = null,
+	readOnly = false,
 }: EditorPanelProps) => {
-	const { ref, editorRef } = useCodemirror({ value, onChange });
+	const { ref, editorRef } = useCodemirror({ value, onChange, readOnly });
 
 	return (
 		<div
 			className={cn(
-				"h-125 border rounded-md flex flex-col overflow-hiddenx",
+				"h-125 border rounded-md flex flex-col overflow-hidden",
 				className,
 			)}
 			onClick={() => {

@@ -1,4 +1,4 @@
-use crate::config::{get_app_config, update_app_config, AppConfigRecord, UpdateAppConfig};
+use crate::db_config::{get_app_config, update_app_config, AppConfigRecord, UpdateAppConfig};
 use crate::prelude::*;
 use crate::utils::Utils;
 use std::{fs, path::Path};
@@ -29,7 +29,7 @@ pub async fn cmd_get_app_config<R: Runtime>(
     app: AppHandle<R>,
 ) -> anyhow::Result<AppConfigRecord, AppError> {
     let state = app.state::<DbOnlyState>();
-    let db = &state.db;
+    let db = state.db.clone();
 
     let config = get_app_config(db).await.map_err(to_app_err)?;
 
@@ -49,6 +49,55 @@ pub async fn cmd_update_app_config<R: Runtime>(
     let result = operation.rows_affected() == 1;
 
     Ok(result)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub async fn cmd_query_convex_task_status(app: AppHandle) -> anyhow::Result<TaskStatus, AppError> {
+    let mutx_state = app.state::<AppState>();
+
+    let mutx = mutx_state.lock().await;
+
+    let task_status = mutx.convex_task_status.clone();
+
+    Ok(task_status)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub async fn cmd_get_all_tasks(app: AppHandle) -> anyhow::Result<Vec<Tasks>, AppError> {
+    let mutx_state = app.state::<AppState>();
+
+    let mut tasks: Vec<Tasks> = vec![];
+
+    let mutx = mutx_state.lock().await;
+
+    tasks.push(Tasks {
+        id: "convex_subscription".into(),
+        status: mutx.convex_task_status.clone(),
+    });
+
+    tasks.push(Tasks {
+        id: "chat_api".into(),
+        status: mutx.chat_api_task_status.clone(),
+    });
+
+    Ok(tasks)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub async fn cmd_open_url(url: &str) -> anyhow::Result<(), AppError> {
+    let d = url.to_string();
+
+    tauri::async_runtime::spawn(async move {
+        webbrowser::open(d.as_str()).map_err(|_| AppError::Unknown)?;
+        Ok::<(), AppError>(())
+    });
+
+    Ok(())
+}
+#[derive(serde::Serialize, serde::Deserialize, Clone)]
+pub struct Tasks {
+    id: String,
+    status: TaskStatus,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone)]

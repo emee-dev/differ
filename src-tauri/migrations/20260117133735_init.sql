@@ -22,6 +22,7 @@ CREATE TABLE app_config (
 /*
 type Attachments = {
   original_file_name: string,
+  original_file_size: string,
   path_on_disk: string, // eg /documents/<app_folder>/attachments/<some_file_name.ext>
 }
 */
@@ -29,9 +30,9 @@ type Attachments = {
 CREATE TABLE paste_bins (
   id TEXT PRIMARY KEY NOT NULL, -- maps to convex '_id' key
   body TEXT NOT NULL,
-  is_local INTEGER NOT NULL DEFAULT 1, -- boolean field
-  creation_time TEXT NOT NULL, -- maps to convex '_creationTime' field
-  attachments TEXT NOT NULL DEFAULT '[]' -- JSON string
+  attachments TEXT NOT NULL DEFAULT '[]', -- JSON string
+  created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+  updated_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 CREATE TABLE multi_file_diffs (

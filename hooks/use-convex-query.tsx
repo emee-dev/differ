@@ -1,24 +1,28 @@
+import { RemotePastes } from "@/lib/ipc/pastebin";
 import { listen } from "@tauri-apps/api/event";
 import { useEffect, useState } from "react";
 
 type ConvexFunctions = "fns:get_recent_pastes";
 
-type Events = "value" | "convex_error" | "error_message";
+type QueryResults = {
+	data: RemotePastes[];
+	error: string;
+};
 
-export const useConvexQuery = (fn: ConvexFunctions) => {
-	const [value, setValue] = useState(undefined);
+export const useConvexQuery = (fn: ConvexFunctions): QueryResults => {
+	const [data, setData] = useState<RemotePastes[]>([]);
 	const [convex_error, set_convex_error] = useState<string>("");
 	const [error_message, set_error_message] = useState<string>("");
 
 	useEffect(() => {
 		const value = listen("get_value", (ev) => {
-			setValue(ev.payload as any);
+			setData(ev.payload as any);
 		});
 		const convexError = listen(`convex_error`, (ev) => {
-			set_convex_error(ev.payload as any);
+			set_convex_error(ev.payload as string);
 		});
 		const errorMessage = listen(`error_message`, (ev) => {
-			set_error_message(ev.payload as any);
+			set_error_message(ev.payload as string);
 		});
 
 		return () => {
@@ -29,7 +33,7 @@ export const useConvexQuery = (fn: ConvexFunctions) => {
 	}, []);
 
 	return {
-		value,
+		data,
 		error: error_message ? error_message : convex_error,
 	};
 };

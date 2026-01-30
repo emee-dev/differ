@@ -1,3 +1,4 @@
+import { Greeting } from "@/components/ai-elements/greeting";
 import {
 	ModelSelector,
 	ModelSelectorContent,
@@ -27,15 +28,11 @@ import {
 	PromptInputSubmit,
 	PromptInputTextarea,
 	PromptInputTools,
-	usePromptInputController,
 } from "@/components/ai-elements/prompt-input";
-import { Greeting } from "@/components/ai-elements/greeting";
 import { PreviewMessage, ThinkingMessage } from "@/components/preview-message";
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
-import { useUpdateModelProvider } from "@/hooks/use-app-config";
-import { Model, models } from "@/lib/data";
-import { AppConfig } from "@/lib/fns/utils";
+import { useUpdateModelProvider } from "@/hooks/use-app-utils";
+import { AppConfig } from "@/lib/ipc/utils";
+import { Model, models } from "@/lib/llms";
 import { useChat } from "@ai-sdk/react";
 import { ChatStatus } from "ai";
 import { ArrowDownIcon, CheckIcon } from "lucide-react";
@@ -335,47 +332,6 @@ export const AIChat = ({
 					</PromptInput>
 				</PromptInputProvider>
 			</div>
-		</div>
-	);
-};
-
-const HeaderControls = () => {
-	const controller = usePromptInputController();
-
-	return (
-		<div className="mt-8 flex items-center justify-between">
-			<ButtonGroup>
-				<Button
-					onClick={() => {
-						controller.textInput.clear();
-					}}
-					size="sm"
-					type="button"
-					variant="outline">
-					Clear input
-				</Button>
-				<Button
-					onClick={() => {
-						controller.textInput.setInput(
-							"Inserted via PromptInputProvider",
-						);
-					}}
-					size="sm"
-					type="button"
-					variant="outline">
-					Set input
-				</Button>
-
-				<Button
-					onClick={() => {
-						controller.attachments.clear();
-					}}
-					size="sm"
-					type="button"
-					variant="outline">
-					Clear attachments
-				</Button>
-			</ButtonGroup>
 		</div>
 	);
 };

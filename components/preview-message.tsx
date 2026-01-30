@@ -1,11 +1,9 @@
-"use client";
 import { MessageContent } from "@/components/ai-elements/message";
 import { Response } from "@/components/ai-elements/response";
 import { cn, sanitizeText } from "@/lib/utils";
 import type { UIMessage, UseChatHelpers } from "@ai-sdk/react";
 import { SparklesIcon } from "lucide-react";
 import { useState } from "react";
-import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
 
@@ -156,49 +154,10 @@ export const PreviewMessage = ({
 									</div>
 								);
 							}
-
-							if (mode === "edit") {
-								return (
-									<div
-										className="flex w-full flex-row items-start gap-3"
-										key={key}>
-										<div className="size-8" />
-										<div className="min-w-0 flex-1">
-											<MessageEditor
-												key={
-													message.id
-												}
-												message={
-													message
-												}
-												regenerate={
-													regenerate
-												}
-												setMessages={
-													setMessages
-												}
-												setMode={
-													setMode
-												}
-											/>
-										</div>
-									</div>
-								);
-							}
 						}
 
 						return null;
 					})}
-
-					{/* {!isReadonly && (
-						<MessageActions
-							chatId={chatId}
-							isLoading={isLoading}
-							key={`action-${message.id}`}
-							message={message}
-							setMode={setMode}
-						/>
-					)} */}
 				</div>
 			</div>
 		</div>

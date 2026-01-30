@@ -17,18 +17,16 @@ function RouteComponent() {
 					</h1>
 					<p className="text-muted-foreground max-w-md mx-auto">
 						A lightweight developer utility for AI
-						chats, diffing files, sharing text across
-						devices, and managing your clipboard.
+						chats, diffing files, and sharing text
+						across devices.
 					</p>
 				</div>
-
 				<p className="text-xs text-muted-foreground">
 					Press{" "}
 					<kbd className="rounded border px-1">Ctrl</kbd> +{" "}
 					<kbd className="rounded border px-1">K</kbd> to
 					open commands
 				</p>
-
 				<CmdMenu />
 			</div>
 		</>

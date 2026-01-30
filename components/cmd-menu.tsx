@@ -8,19 +8,25 @@ import {
 	CommandItem,
 	CommandList,
 	CommandSeparator,
-	CommandShortcut,
 } from "@/components/ui/command";
 import { useNavigate } from "@tanstack/react-router";
-import { Calculator, CreditCard, Settings, User } from "lucide-react";
+import { Clipboard, GitCompare, MessageSquare, Settings } from "lucide-react";
 import type { ComponentType } from "react";
 import * as React from "react";
+import { useSettingsDialog } from "./settings-provider";
+
+type Shortcut = {
+	win: string;
+	mac: string;
+};
 
 export type CommandDefinition = {
 	id: string;
 	label: string;
 	group: "suggestions" | "commands";
 	icon?: ComponentType<any>;
-	shortcut?: string;
+	shortcut: Shortcut;
+	description?: string;
 	disabled?: boolean;
 	run: (ctx: {
 		navigate: (opts: { to: string }) => void;
@@ -30,8 +36,8 @@ export type CommandDefinition = {
 
 export function CmdMenu() {
 	const [open, setOpen] = React.useState(false);
-	const [showSettings, setShowSettings] = React.useState(false);
 	const navigate = useNavigate();
+	const { toggleDialog } = useSettingsDialog();
 
 	React.useEffect(() => {
 		const down = (e: KeyboardEvent) => {
@@ -55,19 +61,15 @@ export function CmdMenu() {
 
 	const COMMANDS: CommandDefinition[] = [
 		{
-			id: "paste-bin-sync",
-			label: "Sync device",
-			group: "suggestions",
-			icon: Calculator,
-			disabled: true,
-			run: () => {},
-		},
-		{
 			id: "multi-file-diff",
 			label: "Diff checker",
+			description: "Compare file contents side by side",
 			group: "commands",
-			icon: User,
-			shortcut: "⌘P",
+			icon: GitCompare,
+			shortcut: {
+				mac: "⌘⇧D",
+				win: "Ctrl+Shift+D",
+			},
 			run: ({ close }) => {
 				navigate({ to: "/multi-file-diff" });
 				close();
@@ -76,20 +78,28 @@ export function CmdMenu() {
 		{
 			id: "paste-bin",
 			label: "Paste Bin",
+			description: "Create and manage code snippets",
 			group: "commands",
-			icon: CreditCard,
-			shortcut: "⌘B",
+			icon: Clipboard,
+			shortcut: {
+				mac: "⌘⇧B",
+				win: "Ctrl+Shift+B",
+			},
 			run: ({ close }) => {
-				navigate({ to: "/paste-bin" });
+				navigate({ to: "/pastebin" });
 				close();
 			},
 		},
 		{
 			id: "chats",
 			label: "AI Chat",
+			description: "Open AI chat conversations",
 			group: "commands",
-			icon: Settings,
-			shortcut: "⌘S",
+			icon: MessageSquare,
+			shortcut: {
+				mac: "⌘⇧C",
+				win: "Ctrl+Shift+C",
+			},
 			run: ({ close }) => {
 				navigate({ to: "/chats" });
 				close();
@@ -98,11 +108,15 @@ export function CmdMenu() {
 		{
 			id: "settings",
 			label: "Settings",
+			description: "Application preferences and configuration",
 			group: "commands",
 			icon: Settings,
-			shortcut: "⌘S",
+			shortcut: {
+				mac: "⌘,",
+				win: "Ctrl+,",
+			},
 			run: ({ close }) => {
-				setShowSettings(true);
+				toggleDialog();
 				close();
 			},
 		},
@@ -195,18 +209,24 @@ export function CmdMenu() {
 										key={cmd.id}
 										onSelect={() =>
 											cmd.run(ctx)
-										}>
+										}
+										className="grid grid-cols-[20px_80px_auto]">
 										{Icon && <Icon />}
 										<span>
 											{cmd.label}
 										</span>
-										{cmd.shortcut && (
+										<span className="text-sm text-muted-foreground/50">
+											{
+												cmd.description
+											}
+										</span>
+										{/* {cmd.shortcut && (
 											<CommandShortcut>
 												{
 													cmd.shortcut
 												}
 											</CommandShortcut>
-										)}
+										)} */}
 									</CommandItem>
 								);
 							})}
@@ -215,10 +235,7 @@ export function CmdMenu() {
 				</Command>
 			</CommandDialog>
 
-			<SettingsDialog
-				open={showSettings}
-				onOpenChange={setShowSettings}
-			/>
+			<SettingsDialog />
 		</>
 	);
 }

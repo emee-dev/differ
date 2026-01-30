@@ -1,12 +1,10 @@
 import { AIChat } from "@/components/ai-chat";
-import { useQueryAppConfig } from "@/hooks/use-app-config";
-import { useQueryChatById } from "@/hooks/use-chat";
+import { useQueryAppConfig } from "@/hooks/use-app-utils";
+import { useQueryChatById, useUpdateChat } from "@/hooks/use-chat";
 import { useMessages } from "@/hooks/use-messages";
-import { Model, models } from "@/lib/data";
-import { UpdateChat, updateChat } from "@/lib/fns/chats";
-import { getEndpoint } from "@/lib/fns/utils";
+import { getEndpoint } from "@/lib/ipc/utils";
+import { Model, models } from "@/lib/llms";
 import { useChat } from "@ai-sdk/react";
-import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { DefaultChatTransport } from "ai";
 import { useEffect, useMemo, useState } from "react";
@@ -44,15 +42,17 @@ function RouteComponent() {
 		transport,
 	});
 
-	const { mutate } = useMutation({
-		mutationKey: ["update_chat_messages"],
-		mutationFn: async (data: UpdateChat) => {
-			return {
-				status: await updateChat(data),
-				chatId: data.chat_id,
-			};
-		},
-	});
+	const { mutate: updateMessages } = useUpdateChat();
+
+	// const { mutate } = useMutation({
+	// 	mutationKey: ["update_chat_messages"],
+	// 	mutationFn: async (data: UpdateChat) => {
+	// 		return {
+	// 			status: await update_chat_message(data),
+	// 			chatId: data.chat_id,
+	// 		};
+	// 	},
+	// });
 
 	const {
 		containerRef: messagesContainerRef,
@@ -76,7 +76,7 @@ function RouteComponent() {
 	// Upsert chat if it is not streaming and has no error
 	useEffect(() => {
 		if (status === "ready" && !error) {
-			mutate({ chat_id: id, messages });
+			updateMessages({ chat_id: id, messages });
 		}
 	}, [status, messages, id, error]);
 

@@ -6,16 +6,15 @@ const schema = defineSchema({
 		accountId: v.id("accounts"),
 		appId: v.string(),
 		body: v.string(),
-		date: v.string(),
 	}),
 	attachments: defineTable({
 		pasteId: v.id<"pastebins">("pastebins"),
 		originalFileName: v.string(),
+		originalFileSize: v.string(),
 		storageId: v.id("_storage"),
 	}),
 	accounts: defineTable({
 		appId: v.string(),
-		password: v.string(),
 	}),
 	devices: defineTable({
 		accountId: v.id("accounts"),

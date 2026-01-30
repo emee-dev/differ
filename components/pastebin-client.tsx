@@ -38,7 +38,12 @@ import {
 	useFileUpload,
 } from "@/hooks/use-file-upload";
 import axios from "axios";
-import { useMutation, useQuery } from "convex/react";
+import {
+	ConvexProvider,
+	ConvexReactClient,
+	useMutation,
+	useQuery,
+} from "convex/react";
 import {
 	AlertCircleIcon,
 	FileTextIcon,
@@ -56,16 +61,25 @@ import { toast } from "sonner";
 
 const maxSize = 10 * 1024 * 1024; // 10MB default
 const maxFiles = 5;
+const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 
-export function PastebinClient() {
+export const PasteBinClient = () => {
+	return (
+		<ConvexProvider client={convex}>
+			<MiniPastebinClient />
+		</ConvexProvider>
+	);
+};
+
+function MiniPastebinClient() {
 	const convexSiteUrl = import.meta.env.VITE_CONVEX_SITE_URL;
 	const { data: browserId, isLoading } = useBrowserId();
 	const account = useQuery(
-		api.pastebin.getAccount,
+		api.pastebin_client.getAccount,
 		browserId ? { browserId } : "skip",
 	) as Account | null;
 	const history = useQuery(
-		api.pastebin.recentHistory,
+		api.pastebin_client.recentHistory,
 		account
 			? {
 					accountId: account.account._id,
@@ -76,7 +90,7 @@ export function PastebinClient() {
 
 	const [toggleDevices, setToggleDevices] = useState(false);
 	const [toggleHistory, setToggleHistory] = useState(false);
-	const storePaste = useMutation(api.pastebin.savePaste);
+	const storePaste = useMutation(api.pastebin_client.savePaste);
 	const [toggleConnect, setToggleConnect] = useState(false);
 	const [value, setValue] = useState<string>("");
 	const [uploadState, uploadActions] = useFileUpload({
@@ -99,7 +113,6 @@ export function PastebinClient() {
 			body: value,
 			accountId: account.account._id,
 			appId: account.account.appId,
-			date: new Date().toLocaleString(),
 		});
 
 		if (files.length === 0) return;
@@ -108,6 +121,7 @@ export function PastebinClient() {
 			const postUrl = new URL(`${convexSiteUrl}/uploadFile`);
 			postUrl.searchParams.set("pasteid", pasteId);
 			postUrl.searchParams.set("filename", file.name);
+			postUrl.searchParams.set("filesize", file.size.toString());
 
 			const { error } = await uploadFile(postUrl.toString(), file);
 
@@ -419,7 +433,7 @@ const FileList = ({
 };
 
 const PasteHistory = ({ history = [], open, onOpenChange }: HistoryProps) => {
-	const deletePaste = useMutation(api.pastebin.deletePaste);
+	const deletePaste = useMutation(api.pastebin_client.deletePaste);
 
 	const onDelete = (pasteId: string) => {
 		deletePaste({
@@ -475,7 +489,7 @@ const PasteHistory = ({ history = [], open, onOpenChange }: HistoryProps) => {
 
 											<p className="text-xs text-muted-foreground">
 												{
-													paste.date
+													paste._creationTime
 												}
 											</p>
 										</div>
@@ -511,12 +525,11 @@ const ConnectDevice = ({
 	browserId,
 }: ConnectDeviceProps) => {
 	const [appId, setAppId] = useState("");
-	const [password, setPassword] = useState("");
 	const [label, setLabel] = useState("");
-	const connectDevice = useMutation(api.pastebin.createAccount);
+	const connectDevice = useMutation(api.pastebin_client.createAccount);
 
 	const onCreateAccount = () => {
-		if (!appId || !password || !label) {
+		if (!appId || !label) {
 			console.log("Enter all required details");
 			return;
 		}
@@ -524,7 +537,6 @@ const ConnectDevice = ({
 		connectDevice({
 			appId,
 			label,
-			password,
 			browserId,
 		});
 	};
@@ -570,23 +582,6 @@ const ConnectDevice = ({
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="new-password">
-									Password
-								</Label>
-								<Input
-									id="new-password"
-									type="password"
-									placeholder="Enter your pastebin password"
-									value={password}
-									onChange={(e) =>
-										setPassword(
-											e.target
-												.value,
-										)
-									}
-								/>
-							</div>
-							<div className="space-y-2">
 								<Label htmlFor="device-label">
 									Device label
 								</Label>
@@ -607,9 +602,7 @@ const ConnectDevice = ({
 
 						<Button
 							className="w-full"
-							disabled={
-								!appId || !password || !label
-							}
+							disabled={!appId || !label}
 							onClick={() => onCreateAccount()}>
 							Connect Device
 						</Button>
@@ -627,7 +620,7 @@ const ShowDevices = ({
 	browserId: currentBrowserId,
 }: ShowDevicesProps) => {
 	const [selectedDevice, setSelectedDevice] = useState<string>("");
-	const removeDevice = useMutation(api.pastebin.removeDevice);
+	const removeDevice = useMutation(api.pastebin_client.removeDevice);
 
 	useEffect(() => {
 		if (currentBrowserId) {
@@ -769,7 +762,7 @@ const ShowDevices = ({
 	);
 };
 
-const uploadFile = async (postUrl: string, file: File) => {
+export const uploadFile = async (postUrl: string, file: File) => {
 	try {
 		const buffer: ArrayBuffer = await file.arrayBuffer();
 
@@ -795,7 +788,6 @@ type History = {
 	accountId: Id<"accounts">;
 	appId: string;
 	body: string;
-	date: string;
 };
 
 type Account = {

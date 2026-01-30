@@ -2,11 +2,16 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
 export const getEndpoint = async (): Promise<string | null> => {
-	let endpoint = (await invoke("cmd_get_chat_api_endpoint", {})) as string;
+	const taskStatus = (await invoke(
+		"cmd_get_chat_api_endpoint",
+		{},
+	)) as TaskStatus;
 
-	if (!endpoint || endpoint.length === 0) return null;
+	if (!taskStatus) return null;
 
-	return endpoint;
+	if (taskStatus.type !== "Endpoint") return null;
+
+	return taskStatus.url;
 };
 
 export const filePicker = async () => {
@@ -36,16 +41,42 @@ export type AppConfig = {
 	selected_model?: string;
 };
 
-export const updateAppConfig = async (config: AppConfig) => {
+export const cmd_update_app_config = async (config: AppConfig) => {
 	return (await invoke("cmd_update_app_config", {
 		config,
 	})) as boolean;
 };
 
-export const getAppConfig = async () => {
+export const cmd_get_app_config = async () => {
 	const data = (await invoke("cmd_get_app_config", {})) as AppConfig;
 
 	if (!data) return null;
 
 	return data;
+};
+
+export type TaskStatus =
+	| { type: "Start" }
+	| { type: "Initialized" }
+	| { type: "Operational" }
+	| { type: "Panicked"; error: string }
+	| { type: "Endpoint"; url: string };
+
+export type Tasks = {
+	id: "convex_subscription" | "chat_api";
+	status: TaskStatus;
+};
+
+export const cmd_get_all_tasks = async () => {
+	const data = (await invoke("cmd_get_all_tasks", {})) as Tasks[];
+
+	if (!data) return [];
+
+	return data;
+};
+
+export const cmd_open_url = async (url: string) => {
+	(await invoke("cmd_open_url", {
+		url,
+	})) as void;
 };

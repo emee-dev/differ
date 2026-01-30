@@ -1,3 +1,5 @@
+use axum::response::{IntoResponse, Response};
+use reqwest::StatusCode;
 use serde::Serialize;
 use thiserror::Error;
 
@@ -25,13 +27,19 @@ pub enum AppError {
     JsonParse(String),
 
     #[error("Thread failed: {0}")]
-    ChatAPI(String),
-
-    #[error("Thread failed: {0}")]
     Convex(String),
 
-    #[error("There is no error at the moment")]
-    InitialServiceState,
+    #[error("Request error: {0}")]
+    Request(String),
+
+    #[error("AI chat error: {0}")]
+    AIChat(String),
+
+    #[error("AI chat error: {0}")]
+    UnsupportedProvider(String),
+
+    #[error("Missing apikey: {0}")]
+    MissingApiKey(String),
 
     #[error("Unknown error")]
     Unknown,
@@ -61,5 +69,25 @@ impl From<convex::ConvexError> for AppError {
 impl From<tauri::Error> for AppError {
     fn from(value: tauri::Error) -> Self {
         AppError::Runtime(value.to_string())
+    }
+}
+
+impl From<aisdk::Error> for AppError {
+    fn from(value: aisdk::Error) -> Self {
+        AppError::AIChat(value.to_string())
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let body = match self {
+            AppError::AIChat(msg) => msg,
+            AppError::MissingApiKey(msg) => msg,
+            AppError::UnsupportedProvider(msg) => msg,
+            AppError::Unknown => "Internal error, failed to process request.".to_string(),
+            _ => "Internal error, please try again later.".to_string(),
+        };
+
+        (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
     }
 }

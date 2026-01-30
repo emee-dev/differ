@@ -29,9 +29,3 @@ export const getCurrentWindow = () => {
 		};
 	}
 };
-
-export const isTauri = () => {
-	return (
-		typeof window !== undefined && ((window as any)?.isTauri as boolean)
-	);
-};

@@ -1,20 +1,23 @@
-use crate::prelude::*;
+use crate::constants::{APP_ID_PREFIX, DEFAULT_PROVIDER_MODEL};
 use crate::utils::Utils;
 use crate::Db;
+use crate::{constants::DEFAULT_AI_PROVIDER, prelude::*};
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sqlx::sqlite::SqliteQueryResult;
 
 pub async fn create_app_config(db: &Db, app_id: &str) -> AppResult<SqliteQueryResult> {
+    
+    // Max no of records one.
     let record_id = "1";
-    let app_id = format!("appId_{}", app_id);
+    let app_id = format!("{}{}", APP_ID_PREFIX, app_id);
     let last_tab = "";
     let anthropic_key = "";
     let google_key = "";
     let groq_key = "";
     let openai_key = "";
-    let selected_provider = "google";
-    let selected_model = "gemini-2.5-flash";
+    let selected_provider = DEFAULT_AI_PROVIDER;
+    let selected_model = DEFAULT_PROVIDER_MODEL;
 
     let result = sqlx::query("INSERT OR IGNORE INTO app_config (id, app_id, last_tab, anthropic_key, google_key, groq_key, openai_key, selected_provider, selected_model) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)")
         .bind(record_id)
@@ -40,9 +43,9 @@ pub async fn init_app_config(db: &Db) -> AppResult<bool> {
     Ok(result.rows_affected() == 1)
 }
 
-pub async fn get_app_config(db: &Db) -> AppResult<AppConfigRecord> {
+pub async fn get_app_config(db: Db) -> AppResult<AppConfigRecord> {
     let record = sqlx::query_as::<_, AppConfigRecord>("SELECT * FROM app_config LIMIT 1")
-        .fetch_one(db)
+        .fetch_one(&db)
         .await
         .context("Failed to query app config")?;
 

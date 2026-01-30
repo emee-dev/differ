@@ -1,4 +1,4 @@
-use crate::chats_utils::{
+use crate::db_chats::{
     create_chat, delete_chat_by_id, find_many, findone_by_id, update_chat_message, ChatsRecord,
 };
 use crate::prelude::*;
@@ -6,15 +6,13 @@ use tauri::Manager;
 use tauri::{AppHandle, Runtime};
 
 #[tauri::command(rename_all = "snake_case")]
-pub async fn cmd_get_chat_api_endpoint<R: Runtime>(
-    app: AppHandle<R>,
-) -> anyhow::Result<String, AppError> {
+pub async fn cmd_get_chat_api_endpoint(app: AppHandle) -> anyhow::Result<TaskStatus, AppError> {
     let app_state = app.state::<AppState>();
-    let state = app_state.lock().unwrap();
+    let state = app_state.lock().await;
 
-    let endpoint = state.chat_api_endpoint.clone().unwrap_or("".into());
+    let task_status = state.chat_api_task_status.clone();
 
-    Ok(endpoint)
+    Ok(task_status)
 }
 
 #[tauri::command(rename_all = "snake_case")]
@@ -64,9 +62,7 @@ pub async fn cmd_update_chat_message<R: Runtime>(
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub async fn cmd_find_recent_chats<R: Runtime>(
-    app: AppHandle<R>,
-) -> anyhow::Result<Vec<ChatsRecord>, AppError> {
+pub async fn cmd_find_recent_chats(app: AppHandle) -> anyhow::Result<Vec<ChatsRecord>, AppError> {
     let state = app.state::<DbOnlyState>();
     let db = &state.db;
 
@@ -76,8 +72,8 @@ pub async fn cmd_find_recent_chats<R: Runtime>(
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub async fn cmd_delete_chat_by_id<R: Runtime>(
-    app: AppHandle<R>,
+pub async fn cmd_delete_chat_by_id(
+    app: AppHandle,
     chat_id: &str,
 ) -> anyhow::Result<bool, AppError> {
     let state = app.state::<DbOnlyState>();

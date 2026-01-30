@@ -1,4 +1,4 @@
-import { ChatsRecord } from "@/lib/fns/chats";
+import { ChatsRecord } from "@/lib/ipc/chats";
 import { Link } from "@tanstack/react-router";
 import { MoreHorizontalIcon, TrashIcon } from "lucide-react";
 import {

@@ -2,7 +2,7 @@ import { EditorPanel } from "@/components/editor-panel";
 import { MultiFileDiff } from "@/components/multi-file-diff";
 import AppNavbar from "@/components/nav-bar";
 import { Button } from "@/components/ui/button";
-import { filePicker } from "@/lib/fns/utils";
+import { filePicker } from "@/lib/ipc/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { Undo2 } from "lucide-react";
 import { Activity, useState } from "react";

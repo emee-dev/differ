@@ -1,12 +1,11 @@
 import { AIChat } from "@/components/ai-chat";
-import { useQueryAppConfig } from "@/hooks/use-app-config";
+import { useQueryAppConfig } from "@/hooks/use-app-utils";
+import { useSaveInitialChat } from "@/hooks/use-chat";
 import { useMessages } from "@/hooks/use-messages";
-import { Model, models } from "@/lib/data";
-import { ChatsRecord, saveInitialChat } from "@/lib/fns/chats";
-import { getEndpoint } from "@/lib/fns/utils";
+import { getEndpoint } from "@/lib/ipc/utils";
+import { Model, models } from "@/lib/llms";
 import { useChat } from "@ai-sdk/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { DefaultChatTransport } from "ai";
 import { useEffect, useMemo, useState } from "react";
 
@@ -19,12 +18,12 @@ export const Route = createFileRoute("/chats/")({
 
 function RouteComponent() {
 	const endpoint = Route.useLoaderData();
-	const navigate = useNavigate();
 	const { data: config } = useQueryAppConfig();
 	const [model, setModel] = useState<string>("");
 	const [selectedModel, setSelectedModel] = useState<Model | null>(null);
 	const [isFirstChat, setIsFirstChat] = useState(false);
-	const queryClient = useQueryClient();
+	// const navigate = useNavigate();
+	// const queryClient = useQueryClient();
 
 	const transport = useMemo(() => {
 		return new DefaultChatTransport({
@@ -55,34 +54,39 @@ function RouteComponent() {
 		},
 	});
 
-	const { mutate } = useMutation({
-		mutationKey: ["save_initial_chat"],
-		mutationFn: async (data: ChatsRecord) => {
-			await saveInitialChat(data);
-
-			return data.id;
-		},
-		onError(e) {
-			console.log("Error: ", e);
-		},
-		onSuccess: async (chatId) => {
-			if (status === "ready" && isFirstChat === true) {
-				await new Promise((r) => setTimeout(r, 1500));
-
-				// Refresh sidebar
-				queryClient.invalidateQueries({
-					queryKey: ["fetch_recent_chats"],
-				});
-
-				navigate({
-					to: "/chats/$chatId",
-					params: {
-						chatId,
-					},
-				});
-			}
-		},
+	const { mutate: saveInitialChat } = useSaveInitialChat({
+		status,
+		isFirstChat,
 	});
+
+	// const { mutate } = useMutation({
+	// 	mutationKey: ["save_initial_chat"],
+	// 	mutationFn: async (data: ChatsRecord) => {
+	// 		await cmd_save_initial_chat(data);
+
+	// 		return data.id;
+	// 	},
+	// 	onError(e) {
+	// 		console.log("Error: ", e);
+	// 	},
+	// 	onSuccess: async (chatId) => {
+	// 		if (status === "ready" && isFirstChat === true) {
+	// 			await new Promise((r) => setTimeout(r, 1500));
+
+	// 			// Refresh sidebar
+	// 			queryClient.invalidateQueries({
+	// 				queryKey: ["fetch_recent_chats"],
+	// 			});
+
+	// 			navigate({
+	// 				to: "/chats/$chatId",
+	// 				params: {
+	// 					chatId,
+	// 				},
+	// 			});
+	// 		}
+	// 	},
+	// });
 
 	const {
 		containerRef: messagesContainerRef,
@@ -106,9 +110,9 @@ function RouteComponent() {
 				label = p.text.slice(0, 35);
 			}
 
-			mutate({ id, label, messages });
+			saveInitialChat({ id, label, messages });
 		}
-	}, [status, messages, id, error, isFirstChat]);
+	}, [id, status, messages, error, isFirstChat]);
 
 	useEffect(() => {
 		if (config && config.selected_model) {

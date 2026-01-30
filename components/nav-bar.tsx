@@ -2,10 +2,11 @@ import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { cn, getCurrentWindow } from "@/lib/utils";
 import { Maximize, Minus, Moon, Settings, Sun, X } from "lucide-react";
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { CmdMenu } from "./cmd-menu";
 import { Navigation } from "./navigation";
 import { SettingsDialog } from "./settings-dialog";
+import { useSettingsDialog } from "./settings-provider";
 
 const AppNavbar = ({
 	className,
@@ -18,14 +19,14 @@ const AppNavbar = ({
 }) => {
 	const appWindow = getCurrentWindow();
 	const { theme, setTheme } = useTheme();
-	const [openSettings, setOpenSettings] = useState(false);
+	const { toggleDialog } = useSettingsDialog();
 
-	const toggleTheme = (): void => {
+	const toggleTheme = () => {
 		setTheme(theme === "light" ? "dark" : "light");
 	};
 
-	const toggleSettings = (): void => {
-		setOpenSettings(!openSettings);
+	const toggleSettings = () => {
+		toggleDialog();
 	};
 
 	return (
@@ -96,8 +97,8 @@ const AppNavbar = ({
 			</div>
 
 			<SettingsDialog
-				open={openSettings}
-				onOpenChange={setOpenSettings}
+			// open={openSettings}
+			// onOpenChange={setOpenSettings}
 			/>
 		</header>
 	);
