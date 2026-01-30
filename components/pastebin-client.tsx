@@ -38,12 +38,7 @@ import {
 	useFileUpload,
 } from "@/hooks/use-file-upload";
 import axios from "axios";
-import {
-	ConvexProvider,
-	ConvexReactClient,
-	useMutation,
-	useQuery,
-} from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import {
 	AlertCircleIcon,
 	FileTextIcon,
@@ -61,17 +56,8 @@ import { toast } from "sonner";
 
 const maxSize = 10 * 1024 * 1024; // 10MB default
 const maxFiles = 5;
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 
-export const PasteBinClient = () => {
-	return (
-		<ConvexProvider client={convex}>
-			<MiniPastebinClient />
-		</ConvexProvider>
-	);
-};
-
-function MiniPastebinClient() {
+export function PastebinClient() {
 	const convexSiteUrl = import.meta.env.VITE_CONVEX_SITE_URL;
 	const { data: browserId, isLoading } = useBrowserId();
 	const account = useQuery(
