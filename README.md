@@ -18,6 +18,9 @@ This application has three distinctive features, namely:
 
 This application has been carefully crafted with runtime memory safety and error handling in mind. As highlighted above, the recent Cloudflare bug dealt a lot of damage to many of us on the internet. With that in mind, I painstakingly designed this app such that there is no use of `unwrap` or `.expect()` unless explicitly required to crash the application. The app is very error-resilient, according to my current knowledge and experience with Rust.
 
+## Demo
+You can find the video demo here [Youtube](https://youtu.be/aPvLLuv0_c0)
+
 ## Architecture Overview
 
 **Frontend**
