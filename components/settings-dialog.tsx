@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import {
-	useAllTasks,
 	useOpenURL,
 	useQueryAppConfig,
 	useUpdateAppConfig,
@@ -59,7 +58,6 @@ export function SettingsDialog() {
 	const location = useLocation();
 	const { section, setSection, open, onOpenChange, toggleDialog } =
 		useSettingsDialog();
-	const { data: tasks } = useAllTasks();
 	const [copied, setCopied] = useState<boolean>(false);
 	const [rememberScreen, setRememberScreen] = useState<boolean>(true);
 	const [selectedProvider, setSelectedProvider] =
@@ -71,8 +69,6 @@ export function SettingsDialog() {
 		openai_key: "",
 		anthropic_key: "",
 	});
-
-	const [pastePassword, setPastePassword] = useState<string>("");
 
 	useEffect(() => {
 		if (!config) return;
@@ -433,7 +429,7 @@ export function SettingsDialog() {
 										and service status
 									</p>
 								</div>
-								<AllTasks tasks={tasks} />
+								<AllTasks />
 							</div>
 						)}
 					</main>

@@ -81,9 +81,9 @@ impl From<aisdk::Error> for AppError {
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let body = match self {
-            AppError::AIChat(msg) => msg,
-            AppError::MissingApiKey(msg) => msg,
-            AppError::UnsupportedProvider(msg) => msg,
+            AppError::AIChat(msg) => format!("Ai chat error: {}", msg),
+            AppError::MissingApiKey(msg) => format!("Missing api key for provider: {}", msg),
+            AppError::UnsupportedProvider(msg) => format!("Unsupported provider: {}", msg),
             AppError::Unknown => "Internal error, failed to process request.".to_string(),
             _ => "Internal error, please try again later.".to_string(),
         };

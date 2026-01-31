@@ -8,6 +8,7 @@ import { useChat } from "@ai-sdk/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { DefaultChatTransport } from "ai";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/chats/")({
 	component: RouteComponent,
@@ -22,8 +23,6 @@ function RouteComponent() {
 	const [model, setModel] = useState<string>("");
 	const [selectedModel, setSelectedModel] = useState<Model | null>(null);
 	const [isFirstChat, setIsFirstChat] = useState(false);
-	// const navigate = useNavigate();
-	// const queryClient = useQueryClient();
 
 	const transport = useMemo(() => {
 		return new DefaultChatTransport({
@@ -50,7 +49,12 @@ function RouteComponent() {
 		},
 
 		onError(err) {
-			console.error(err.stack);
+			toast.error("Oops chat error!!", {
+				description: err.message,
+				dismissible: true,
+			});
+
+			console.error(err);
 		},
 	});
 

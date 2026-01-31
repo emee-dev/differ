@@ -56,7 +56,6 @@ export const cmd_get_app_config = async () => {
 };
 
 export type TaskStatus =
-	| { type: "Start" }
 	| { type: "Initialized" }
 	| { type: "Operational" }
 	| { type: "Panicked"; error: string }

@@ -136,6 +136,7 @@ export const useAllTasks = () => {
 			return await cmd_get_all_tasks();
 		},
 		initialData: [],
+		refetchOnMount: true,
 	});
 
 	return r;

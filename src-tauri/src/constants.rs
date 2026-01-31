@@ -17,7 +17,4 @@ pub const OPENAI_BASE_URL: &str = "https://api.openai.com";
 pub const DEFAULT_AI_PROVIDER: &str = "google";
 pub const DEFAULT_PROVIDER_MODEL: &str = "gemini-2.5-flash";
 
-
 pub const APP_ID_PREFIX: &str = "appId_";
-
-

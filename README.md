@@ -50,7 +50,7 @@ This application has been carefully crafted with runtime memory safety and error
 │   ├── components/
 │   ├── convex/
 │   ├── lib/ipc/*           IPC client functions
-│   ├── hooks/              React hooks for querying & mutations
+│   ├── hooks/              React hooks for queries & mutations
 │   └── main.tsx
 │
 ├── src-tauri/              Rust + Tauri backend
@@ -101,9 +101,9 @@ pnpm install
 Run in development:
 
 ```bash
-pnpm tauri dev
+pnpm tauri dev # dev build
 
-# pnpm tauri build 
+# pnpm tauri build # release build
 ```
 
 ## SECURITY & PERFORMANCE

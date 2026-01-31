@@ -17,9 +17,6 @@ pub struct DbOnlyState {
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
 pub enum TaskStatus {
-    /// When called by the UI to start the thread
-    Start,
-
     /// When initialized in Tauri managed state
     Initialized,
 

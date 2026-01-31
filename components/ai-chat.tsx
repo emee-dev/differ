@@ -35,8 +35,9 @@ import { AppConfig } from "@/lib/ipc/utils";
 import { Model, models } from "@/lib/llms";
 import { useChat } from "@ai-sdk/react";
 import { ChatStatus } from "ai";
-import { ArrowDownIcon, CheckIcon } from "lucide-react";
+import { ArrowDownIcon, CheckIcon, RefreshCcw } from "lucide-react";
 import { Dispatch, RefObject, SetStateAction, useState } from "react";
+import { Button } from "./ui/button";
 
 type UseChat = ReturnType<typeof useChat>;
 
@@ -123,16 +124,19 @@ export const AIChat = ({
 						))}
 
 						{error && (
-							<>
+							<div className="flex flex-col w-full justify-center gap-y-1.5">
 								<div>An error occurred.</div>
-								<button
-									type="button"
+								<Button
+									variant="outline"
+									className="w-fit"
+									size="sm"
 									onClick={() =>
 										regenerate()
 									}>
-									Retry
-								</button>
-							</>
+									<RefreshCcw className="size-4 mr-1" />
+									Retry{" "}
+								</Button>
+							</div>
 						)}
 
 						{status === "submitted" &&

@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 use sqlx::sqlite::SqliteQueryResult;
 
 pub async fn create_app_config(db: &Db, app_id: &str) -> AppResult<SqliteQueryResult> {
-    
     // Max no of records one.
     let record_id = "1";
     let app_id = format!("{}{}", APP_ID_PREFIX, app_id);

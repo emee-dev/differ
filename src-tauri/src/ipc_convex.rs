@@ -85,6 +85,9 @@ pub async fn cmd_convex_query(app: AppHandle) -> anyhow::Result<(), AppError> {
             tokio::select! {
                 result = subscription.next() => {
                     let Some(result) = result else {
+                        println!("There is not subscription at the moment.");
+                        let mut guard = mutx_state.lock().await;
+                        guard.convex_task_status = TaskStatus::Initialized;
                         break;
                     };
 
@@ -124,6 +127,7 @@ pub async fn cmd_convex_query(app: AppHandle) -> anyhow::Result<(), AppError> {
                 }
 
                 _ = cancel_rx.changed() => {
+                    println!("Terminating convex query subscription.");
                     handle.unlisten(on_app_close);
                     handle.unlisten(on_query_close);
 

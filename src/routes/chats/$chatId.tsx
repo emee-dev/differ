@@ -44,16 +44,6 @@ function RouteComponent() {
 
 	const { mutate: updateMessages } = useUpdateChat();
 
-	// const { mutate } = useMutation({
-	// 	mutationKey: ["update_chat_messages"],
-	// 	mutationFn: async (data: UpdateChat) => {
-	// 		return {
-	// 			status: await update_chat_message(data),
-	// 			chatId: data.chat_id,
-	// 		};
-	// 	},
-	// });
-
 	const {
 		containerRef: messagesContainerRef,
 		endRef: messagesEndRef,
@@ -67,8 +57,6 @@ function RouteComponent() {
 	// Init messages on load
 	useEffect(() => {
 		if (data) {
-			console.log("Messages: ", JSON.parse(data.messages));
-
 			setMessages(JSON.parse(data.messages));
 		}
 	}, [data]);

@@ -1,13 +1,13 @@
 mod axum;
+mod constants;
 mod db_chats;
 mod db_config;
-mod constants;
+mod db_pastebin;
 mod error;
 mod ipc_chats;
 mod ipc_convex;
 mod ipc_pastebin;
 mod ipc_utils;
-mod db_pastebin;
 mod prelude;
 mod utils;
 
@@ -47,6 +47,7 @@ pub async fn run() -> AppResult<()> {
     };
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(DbOnlyState {

@@ -64,9 +64,66 @@ pub async fn delete_chat_by_id(db: &Db, chat_id: &str) -> AppResult<SqliteQueryR
     Ok(update_chat)
 }
 
-#[derive(sqlx::FromRow, Default, Serialize, Deserialize)]
+#[derive(sqlx::FromRow, Default, Serialize, Deserialize, Clone)]
 pub struct ChatsRecord {
     pub id: String,
     pub label: String,
     pub messages: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sqlx::SqlitePool;
+
+    async fn setup_db() -> SqlitePool {
+        let pool = SqlitePool::connect(":memory:")
+            .await
+            .expect("failed to create sqlite pool");
+
+        match sqlx::migrate!("./migrations").run(&pool).await {
+            Ok(_) => (),
+            Err(migration_error) => panic!("Database migration error: {:?}", migration_error),
+        }
+
+        pool
+    }
+
+    fn mock_chat() -> ChatsRecord {
+        ChatsRecord {
+            id: "chat_1".to_string(),
+            label: "Test Chat".to_string(),
+            messages: "[]".to_string(),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_create_chat() {
+        let db = setup_db().await;
+        let chat = mock_chat();
+
+        let result = create_chat(&db, chat).await;
+        assert!(result.is_ok());
+
+        let rows_affected = result.unwrap().rows_affected();
+        assert_eq!(rows_affected, 1);
+    }
+
+    #[tokio::test]
+    async fn test_findone_by_id() {
+        let db = setup_db().await;
+        let chat = mock_chat();
+
+        create_chat(&db, chat.clone())
+            .await
+            .expect("failed to create chat");
+
+        let fetched = findone_by_id(&db, &chat.id)
+            .await
+            .expect("failed to fetch chat");
+
+        assert_eq!(fetched.id, chat.id);
+        assert_eq!(fetched.label, chat.label);
+        assert_eq!(fetched.messages, chat.messages);
+    }
 }
