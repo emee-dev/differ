@@ -43,3 +43,12 @@ reqwest.workspace = true
 futures-util.workspace = true
 webbrowser.workspace = true
 tauri-plugin-process = "2"
+
+
+# Opentelemetry
+tonic.workspace = true
+opentelemetry.workspace = true
+opentelemetry_sdk.workspace = true
+opentelemetry-otlp.workspace = true
+opentelemetry-resource-detectors.workspace = true
+

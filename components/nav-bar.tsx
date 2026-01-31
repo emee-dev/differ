@@ -96,10 +96,7 @@ const AppNavbar = ({
 				</div>
 			</div>
 
-			<SettingsDialog
-			// open={openSettings}
-			// onOpenChange={setOpenSettings}
-			/>
+			<SettingsDialog />
 		</header>
 	);
 };

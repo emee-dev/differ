@@ -6,7 +6,11 @@ import { formatBytes } from "@/hooks/use-file-upload";
 import { useQueryPasteById } from "@/hooks/use-pastebin";
 import { LocalAttachment } from "@/lib/ipc/pastebin";
 import { getLocalFileIcon } from "@/lib/utils";
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	useNavigate,
+	useParams,
+} from "@tanstack/react-router";
 import { ExternalLink, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -37,24 +41,6 @@ function RouteComponent() {
 					customHeader={
 						<div className="font-sans text-sm flex items-center">
 							<span>Local pastes</span>
-
-							<button
-								type="button"
-								className="ml-auto flex items-center gap-x-1.5 text-muted-foreground hover:text-foreground transition"
-								disabled>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 24 24"
-									fill="currentColor"
-									className="size-4">
-									<path
-										fillRule="evenodd"
-										d="M18.97 3.659a2.25 2.25 0 0 0-3.182 0l-10.94 10.94a3.75 3.75 0 1 0 5.304 5.303l7.693-7.693a.75.75 0 0 1 1.06 1.06l-7.693 7.693a5.25 5.25 0 1 1-7.424-7.424l10.939-10.94a3.75 3.75 0 1 1 5.303 5.304L9.097 18.835l-.008.008-.007.007-.002.002-.003.002A2.25 2.25 0 0 1 5.91 15.66l7.81-7.81a.75.75 0 0 1 1.061 1.06l-7.81 7.81a.75.75 0 0 0 1.054 1.068L18.97 6.84a2.25 2.25 0 0 0 0-3.182Z"
-										clipRule="evenodd"
-									/>
-								</svg>
-								Attach file
-							</button>
 						</div>
 					}
 				/>
@@ -70,12 +56,20 @@ export function Attachments({
 }: {
 	attachments?: LocalAttachment[];
 }) {
-	const onDeleteLocalAttachment = (path: string) => {};
+	const navigate = useNavigate();
+	const onDeleteLocalAttachment = (id: string) => {};
 
 	return (
 		<div className="flex flex-col gap-2">
 			<div className="flex items-center">
-				<RecentPastes className="ml-auto" />
+				<RecentPastes className="ml-autox" />
+				<Button
+					variant="outline"
+					size="sm"
+					className="ml-auto"
+					onClick={() => navigate({ to: "/pastebin" })}>
+					New paste
+				</Button>
 			</div>
 
 			<div className="overflow-auto max-h-64 min-h-63 scrollbar-hide">
@@ -136,7 +130,12 @@ export function Attachments({
 									<Button
 										aria-label="Open"
 										className="size-8 text-muted-foreground/80 hover:bg-transparent hover:text-foreground"
-										onClick={() => {}}
+										onClick={() => {
+											console.log(
+												"File: ",
+												file,
+											);
+										}}
 										size="icon"
 										variant="ghost">
 										<ExternalLink

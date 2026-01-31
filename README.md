@@ -1,6 +1,6 @@
 ## Differ
 
-Differ is a minimal dev utility app aimed at providing a set of tools that developers are more likely to use every day. Such tools include AI chat, cross-device Pastebin, and a code snippet diff checker. It can also be used as a standard Tauri template, providing best practices regarding async Rust, error handling, unit tests, and memory safety in general.
+Differ is a minimal dev utility app aimed at providing a set of tools that developers are more likely to use every day. Such tools include AI chat, cross-device Pastebin, and a code snippet diff checker. It can also be used as a standard Tauri template, providing best practices regarding async Rust, error handling, unit tests, and memory safety in general. This was built for the Rust Africa 2026 Hackathon [#RustAfricaHackathon]()
 
 ## Inspiration
 
@@ -101,7 +101,7 @@ pnpm install
 Run in development:
 
 ```bash
-pnpm tauri dev # dev build
+pnpm tauri dev # copy `.env.example` to `.env.local`
 
 # pnpm tauri build # release build
 ```

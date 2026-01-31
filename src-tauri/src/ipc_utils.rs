@@ -2,8 +2,8 @@ use crate::db_config::{get_app_config, update_app_config, AppConfigRecord, Updat
 use crate::prelude::*;
 use crate::utils::Utils;
 use std::{fs, path::Path};
+use tauri::Manager;
 use tauri::{AppHandle, Runtime};
-use tauri::{Emitter, Manager};
 
 #[tauri::command(rename_all = "snake_case")]
 pub fn cmd_read_file(file_path: &str) -> anyhow::Result<FileContents, AppError> {

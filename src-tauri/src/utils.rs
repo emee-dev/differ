@@ -3,14 +3,22 @@ use crate::prelude::*;
 use chrono::Local;
 use directories::UserDirs;
 use futures_util::StreamExt;
+use opentelemetry::KeyValue;
+use opentelemetry_otlp::WithExportConfig;
+use opentelemetry_otlp::WithTonicConfig;
+use opentelemetry_sdk::trace::SdkTracerProvider;
+use opentelemetry_sdk::Resource;
 use port_selector::{random_free_tcp_port, Port};
 use sqlx::sqlite::SqlitePoolOptions;
 use std::fs::File;
 use std::io::Write;
 use std::io::{BufReader, Cursor};
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use tokio::fs;
 use tokio::fs::OpenOptions;
+use tonic::metadata::MetadataMap;
+use tonic::transport::ClientTlsConfig;
 use uuid::Uuid;
 
 pub struct Utils;
@@ -158,6 +166,33 @@ impl Utils {
 
         Ok(())
     }
+}
+
+pub fn init_tracer(dsn: String) -> anyhow::Result<SdkTracerProvider> {
+    // Configure gRPC metadata with Uptrace DSN
+    let mut metadata = MetadataMap::with_capacity(1);
+    metadata.insert("uptrace-dsn", dsn.parse().unwrap());
+
+    // Create OTLP span exporter
+    let exporter = opentelemetry_otlp::SpanExporter::builder()
+        .with_tonic()
+        .with_tls_config(ClientTlsConfig::new().with_native_roots())
+        .with_endpoint("https://api.uptrace.dev:4317")
+        .with_metadata(metadata)
+        .with_timeout(Duration::from_secs(10))
+        .build()?;
+
+    let resource = Resource::builder()
+        .with_attribute(KeyValue::new("service.name", "differ"))
+        .build();
+
+    // Build the tracer provider
+    let provider = SdkTracerProvider::builder()
+        .with_batch_exporter(exporter)
+        .with_resource(resource)
+        .build();
+
+    Ok(provider)
 }
 
 #[cfg(test)]

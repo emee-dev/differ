@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useQueryRecentChats } from "@/hooks/use-chat";
 import { useNavigate } from "@tanstack/react-router";
-import { PlusIcon, TrashIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import * as React from "react";
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {};
@@ -33,23 +33,6 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
 							</span>
 						</div>
 						<div className="flex flex-row gap-1">
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<Button
-										className="h-8 p-1 md:h-fit md:p-2"
-										onClick={() => {}}
-										type="button"
-										variant="ghost"
-										size="icon-sm">
-										<TrashIcon />
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent
-									align="end"
-									className="hidden md:block">
-									Delete All Chats
-								</TooltipContent>
-							</Tooltip>
 							<Tooltip>
 								<TooltipTrigger asChild>
 									<Button

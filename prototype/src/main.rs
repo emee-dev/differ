@@ -6,7 +6,7 @@ use std::io::Write;
 use std::path::Path;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     // if webbrowser::open("https://ai-sdk.dev/providers/ai-sdk-providers/openai").is_ok() {}
 
     let path = Path::new("example.exe");
@@ -14,7 +14,11 @@ async fn main() {
         println!("Downloaded: {downloaded}");
     })
     .await;
+
+    Ok(())
 }
+
+// fn init_tracer(dsn: String) -> Result<SdkTracerProvider, Box<dyn std::error::Error + Send + Sync>> {
 
 async fn download_file<T: FnMut(u64, Option<u64>)>(url: &str, path: &Path, mut f: T) -> () {
     let resp = reqwest::get(url).await.expect("request failed");

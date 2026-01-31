@@ -14,9 +14,11 @@ mod utils;
 use crate::axum::init_chat_api;
 use crate::db_config::init_app_config;
 use crate::prelude::*;
-use crate::utils::Utils;
+use crate::utils::{init_tracer, Utils};
 use crate::{Db, DifferState};
 use convex::ConvexClient;
+use opentelemetry::trace::{Span, Status};
+use opentelemetry::{global, trace::Tracer};
 use std::env;
 use tauri::{self, Emitter};
 use tokio::sync::Mutex;
@@ -25,6 +27,14 @@ use tokio::sync::Mutex;
 pub async fn run() -> AppResult<()> {
     Utils::init_env_variables();
 
+    let uptrace_dsn =
+        std::env::var("UPTRACE_DSN").expect("UPTRACE_DSN is required for opentelemetry");
+
+    let provider = init_tracer(uptrace_dsn)?;
+    global::set_tracer_provider(provider.clone());
+
+    let tracer = global::tracer("tauri_setup");
+
     // Absolutely required env variables
     for key in ["VITE_CONVEX_URL", "VITE_CONVEX_SITE_URL"] {
         if std::env::var(key).is_err() {
@@ -32,11 +42,27 @@ pub async fn run() -> AppResult<()> {
         }
     }
 
-    let db = Utils::setup_db().await?;
+    let mut span = tracer.start("setup_db");
 
+    let db = match Utils::setup_db().await {
+        Ok(pool) => pool,
+        Err(err) => {
+            span.record_error(err.as_ref());
+            span.set_status(Status::error(err.to_string()));
+            panic!("Database setup failed.")
+        }
+    };
+
+    span.end();
+
+    let mut span = tracer.start("init_app_config");
     if let Err(err) = init_app_config(&db).await {
+        span.record_error(err.as_ref());
+        span.set_status(Status::error(err.to_string()));
         panic!("Config error: {}", err)
     };
+
+    span.end();
 
     let deployment_url = dotenvy::var("VITE_CONVEX_URL")
         .expect("[VITE_CONVEX_URL] is required, it must end with .cloud");
@@ -58,17 +84,24 @@ pub async fn run() -> AppResult<()> {
             convex_task_status: TaskStatus::Initialized,
             chat_api_task_status: TaskStatus::Initialized,
         }))
-        .setup(|app| {
+        .setup(move |app| {
             let app_handle = app.handle();
 
-            init_chat_api(app_handle, db)?;
+            let _ = tracer.in_span("init_chat_api", |_| {
+                init_chat_api(app_handle, db)?;
+
+                Ok::<(), anyhow::Error>(())
+            });
 
             Ok(())
         })
-        .on_window_event(|window, ev| {
+        .on_window_event(move |window, ev| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = ev {
                 // Prevent default
                 api.prevent_close();
+
+                provider.force_flush().ok();
+                provider.shutdown().ok();
 
                 // Seamlessly terminate all services
                 window

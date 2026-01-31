@@ -2,10 +2,6 @@ import { useAllTasks } from "@/hooks/use-app-utils";
 import { Tasks } from "@/lib/ipc/utils";
 import { AlertCircle, Clock, Loader, Wifi, Zap } from "lucide-react";
 
-interface TaskStatusProps {
-	onRetry?: (taskId: Tasks["id"]) => void;
-}
-
 const convexStatus = {
 	Initialized: <Clock className="size-5" />,
 	Operational: <Loader className="size-5 animate-spin" />,
